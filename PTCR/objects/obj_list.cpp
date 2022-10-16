@@ -2,7 +2,7 @@
 void obj_list::clear()
 {
 	for (auto& obj : objects)
-		obj.free();
+		obj.clean();
 	objects.clear();
 	lights.clear();
 	bbox = aabb();

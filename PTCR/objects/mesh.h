@@ -59,7 +59,7 @@ public:
 		uint id = raint(size - 1);
 		return prim[id].rand_from();
 	}
-	inline void free() {
+	inline void clean() {
 		delete[]prim;
 	}
 private:
@@ -166,12 +166,12 @@ struct mesh_var {
 		default: return 0;
 		}
 	}
-	inline void free() {
+	inline void clean() {
 		switch (id) {
-		case o_sph: s.free(); break;
-		case o_qua: q.free(); break;
-		case o_tri: t.free(); break;
-		case o_vox:	v.free(); break;
+		case o_sph: s.clean(); break;
+		case o_qua: q.clean(); break;
+		case o_tri: t.clean(); break;
+		case o_vox:	v.clean(); break;
 		case o_bla:
 		case o_bvh:
 		default:break;

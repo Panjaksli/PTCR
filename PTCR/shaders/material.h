@@ -2,13 +2,13 @@
 #include "vec3.h"
 #include "ray.h"
 #include "obj.h"
-#include "texture.h"
+#include "albedo.h"
 #include "samplers.h"
 #include "shading.h"
 #if DEBUG
 static float spec_filter = 10.f;
-#elif
-constexpr float spec_filter = 100.f;
+#else
+constexpr float spec_filter = 10.f;
 #endif
 
 struct matrec {
@@ -26,45 +26,49 @@ public:
 
 class lambert : public material {
 public:
-	lambert(sptr<texture> _tex):_tex(_tex.get()) {}
+	lambert(const albedo& _tex) :tex(_tex) {}
+	~lambert()override { tex.clean(); }
 	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
-		tex_data tex(_tex->sample(rec.u, rec.v));
-		vec3 N = normal_map(rec.N, tex.nor);
+		vec3 rgb = tex.rgb(rec.u, rec.v);
+		vec3 nor = tex.nor(rec.u, rec.v);
+		vec3 N = normal_map(rec.N, nor);
 		vec3 V = -r.D;
 		vec3 L = onb(N).local(sa_cos());
-		vec3 rgb = tex.col;
 		mat.N = N;
 		mat.dr = L;
 		mat.diff = rgb;
 	}
-	texture* _tex;
+	albedo tex;
 };
 class mirror : public material {
 public:
-	mirror(sptr<texture> _tex) :_tex(_tex.get()) {}
+	mirror(const albedo& _tex) :tex(_tex) {}
+	~mirror()override { tex.clean(); }
 	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
-		tex_data tex(_tex->sample(rec.u, rec.v));
-		vec3 N = normal_map(rec.N, tex.nor);
+		vec3 rgb = tex.rgb(rec.u, rec.v);
+		vec3 nor = tex.nor(rec.u, rec.v);
+		vec3 N = normal_map(rec.N, nor);
 		vec3 V = r.D;
 		vec3 L = reflect(V, N);
-		vec3 rgb = tex.col;
 		mat.N = N;
 		mat.sr = L;
 		mat.spec = rgb;
 	}
-	texture* _tex;
+	albedo tex;
 };
 class pbr : public material {
 public:
-	pbr(sptr<texture> _tex) :_tex(_tex.get()) {}
+	pbr(const albedo& _tex) :tex(_tex) {}
+	~pbr()override { tex.clean(); }
 	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
-		tex_data tex(_tex->sample(rec.u, rec.v));
-		vec3 rgb = tex.col;
-		vec3 mer = tex.mer;
+		vec3 rgb = tex.rgb(rec.u, rec.v);
+		vec3 mer = tex.mer(rec.u, rec.v);
+		vec3 nor = tex.nor(rec.u, rec.v);
 		float mu = mer.x;
 		float em = mer.y;
-		float ro = mer.z, a = ro * ro;
-		vec3 N = normal_map(rec.N, tex.nor);
+		float ro = mer.z;
+		float a = ro * ro;
+		vec3 N = normal_map(rec.N, nor);
 		vec3 V = -r.D;
 		vec3 H = onb(N).local(sa_ggx2(a));
 		vec3 L = reflect(r.D, H);
@@ -88,29 +92,29 @@ public:
 		mat.dr = L;
 		mat.emis = rgb * em;
 	}
-	texture* _tex;
+	albedo tex;
 };
 class uni_light : public material {
 public:
-	uni_light(sptr<texture> _tex) :_tex(_tex.get()) {}
+	uni_light(const albedo& _tex) :tex(_tex) {}
+	~uni_light()override { tex.clean(); }
 	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
-		tex_data tex(_tex->sample(rec.u, rec.v));
-		vec3 col = tex.col;
+		vec3 rgb = tex.rgb(rec.u, rec.v);
 		mat.N = rec.N;
-		mat.emis = col * col.w;
+		mat.emis = rgb;
 	}
-	texture* _tex;
+	albedo tex;
 };
 
 class dir_light : public material {
 public:
-	dir_light(sptr<texture> _tex) :_tex(_tex.get()) {}
+	dir_light(const albedo& _tex) :tex(_tex) {}
+	~dir_light()override { tex.clean(); }
 	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
-		tex_data tex(_tex->sample(rec.u, rec.v));
-		vec3 col = tex.col;
+		vec3 rgb = tex.rgb(rec.u, rec.v);
 		mat.N = rec.N;
-		mat.emis = rec.face * col * col.w;
+		mat.emis = rec.face * rgb;
 	}
-	texture* _tex;
+	albedo tex;
 };
 

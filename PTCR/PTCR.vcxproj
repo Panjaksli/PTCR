@@ -176,7 +176,7 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="misc\event_handler.cpp" />
-    <ClCompile Include="misc\image.cpp" />
+    <ClCompile Include="shaders\texture.cpp" />
     <ClCompile Include="objects\obj_list.cpp" />
     <ClCompile Include="PTCR.cpp" />
     <ClCompile Include="scene\camera.cpp" />
@@ -201,7 +201,8 @@
     <ClInclude Include="math\vec3_SSE.h" />
     <ClInclude Include="misc\defines.h" />
     <ClInclude Include="misc\event_handler.h" />
-    <ClInclude Include="misc\image.h" />
+    <ClInclude Include="shaders\albedo.h" />
+    <ClInclude Include="shaders\texture.h" />
     <ClInclude Include="misc\util.h" />
     <ClInclude Include="objects\aabb.h" />
     <ClInclude Include="objects\mesh.h" />
@@ -218,7 +219,6 @@
     <ClInclude Include="shaders\pdf.h" />
     <ClInclude Include="shaders\samplers.h" />
     <ClInclude Include="shaders\shading.h" />
-    <ClInclude Include="shaders\texture.h" />
     <ClInclude Include="stb\stb_image.h" />
     <ClInclude Include="stb\stb_image_write.h" />
   </ItemGroup>

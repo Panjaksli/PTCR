@@ -6,12 +6,12 @@
 #include <imgui_impl_sdlrenderer.h>
 #include "scene.h"
 #include "event_handler.h"
-int main()
-{
-	sizeof(mesh_var);
 #define WIDTH 800
 #define HEIGHT 600
-#define SCALE 1// 0.6666667f
+#define SCALE 1 //0.6666667f
+int main()
+{
+	sizeof(albedo);
 	uint width = WIDTH, height = HEIGHT;
 	SDL_Init(SDL_INIT_EVERYTHING);
 #if defined(_WIN32) || defined(WIN32)
@@ -53,35 +53,14 @@ int main()
 	float& scale = scn.opt.res_scale;
 	scale = SCALE;
 	bool& moving = scn.cam.moving;
-	auto red = msha<pbr_tex>("gravel.png", "gravel_mer.png", "gravel_normal.png", 5);
-	auto bog = msha<pbr_tex>("iron_block.png", "iron_block_mer.png", "iron_block_normal.png", 10000);
-	auto white = msha<uni_tex>(vec3(.73, .73, .73));
-	auto green = msha<uni_tex>(vec3(.12, .45, .15));
-	auto blue = msha<uni_tex>(vec3(.12, .15, .45));
-	auto light = msha<uni_tex>(vec3(1, 1, 1, 20));
-	auto pbrr = msha<uni_tex>(vec3(0.9, 0.9, 0.9, 1));
-	auto lr = msha<pbr>(red);
-	auto mbog = msha<pbr>(bog);
-	auto lw = msha<lambert>(white);
-	auto lb = msha<lambert>(blue);
-	auto mw = msha<mirror>(white);
-	auto lg = msha<lambert>(green);
-	auto ll = msha<dir_light>(light);
-	auto gx = msha<pbr>(pbrr);
+	albedo iron = albedo(texture("iron_block.png", 1e4), texture("iron_block_mer.png", 1e4), texture("iron_block_normal.png", 1e4));
+	albedo orange = albedo(texture("concrete_orange.png", 10), texture("concrete_mer.png", 10), texture("concrete_normal.png", 10));
+	auto pbr_iron = msha<pbr>(iron);
+	auto pbr_orange = msha<pbr>(orange);
 	double l = 0.555;
-#if 1
-	scn.world.add(quad(vec3(0.213, l - eps, 0.227), vec3(0.343, l - eps, 0.227), vec3(0.213, l - eps, 0.332)), ll, 1);
-	scn.world.add(quad(vec3(0, 0, 0), vec3(0, 0, l), vec3(0, l, 0)), lw);
-	scn.world.add(quad(vec3(l, 0, 0), vec3(l, 0, l), vec3(l, l, 0)), lg);
-	scn.world.add(quad(vec3(0, 0, 0), vec3(l, 0, 0), vec3(0, 0, l)), lb);
-	scn.world.add(quad(vec3(0, l, 0), vec3(l, l, 0), vec3(0, l, l)), lw);
-	scn.world.add(quad(vec3(0, 0, l), vec3(l, 0, l), vec3(0, l, l)), mw);
-	scn.world.add(quad(vec3(0, 0, 0), vec3(l, 0, 0), vec3(0, l, 0)), mw);
-	scn.world.add(sphere(vec3(l / 2, 0.1, l / 2, 0.1)), lr);
-#else
-	scn.world.add(sphere(vec3(l / 2, 0.095f, l / 2, 0.1)), lr);
-	scn.world.add(quad(vec3(-1000, eps, -1000), vec3(1000, eps, -1000), vec3(-1000, eps, 1000)), mbog);
-#endif
+	scn.world.add(sphere(vec3(l / 2, 0.095f, l / 2, 0.1)), pbr_orange);
+	scn.world.add(quad(vec3(-1000, eps, -1000), vec3(1000, eps, -1000), vec3(-1000, eps, 1000)), pbr_iron);
+
 	scn.cam.T.set_P(vec3(0.1, 0.1, 0.1));
 	scn.cam.T.rot();
 	while (running) {
