@@ -74,7 +74,7 @@ public:
 		float HoL = dot(H, L);
 		float HoV = dot(H, V);
 		vec3 F0 = mix(0.04f, rgb, mu);
-		vec3 F = 0;
+		vec3 F = 0.f;
 		if (NoL > 0.0f && HoL > 0.0f) {
 			F = FRES(HoL, F0);
 			float G = GGX2(NoV, NoL, a);

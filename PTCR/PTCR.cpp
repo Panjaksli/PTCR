@@ -69,7 +69,7 @@ int main()
 	auto ll = msha<dir_light>(light);
 	auto gx = msha<pbr>(pbrr);
 	double l = 0.555;
-#if 0
+#if 1
 	scn.world.add(quad(vec3(0.213, l - eps, 0.227), vec3(0.343, l - eps, 0.227), vec3(0.213, l - eps, 0.332)), ll, 1);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(0, 0, l), vec3(0, l, 0)), lw);
 	scn.world.add(quad(vec3(l, 0, 0), vec3(l, 0, l), vec3(l, l, 0)), lg);

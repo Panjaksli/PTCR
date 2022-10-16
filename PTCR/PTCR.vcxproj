@@ -119,7 +119,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>-Ofast -msse4.1 -mfma -openmp -fms-extensions %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Ofast -march=haswell -openmp -fms-extensions  %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -127,7 +127,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <EnableEnhancedInstructionSet>Streaming SIMD Extensions 2 (/arch:SSE4)</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,7 +149,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>-Ofast -msse4.1 -mfma -openmp -fms-extensions %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Ofast -march=haswell -openmp -fms-extensions  %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir)\imgui;$(ProjectDir)\scene;$(ProjectDir)\math;$(ProjectDir);$(ProjectDir)\objects;$(ProjectDir)\misc;$(ProjectDir)\sdl2\include;$(ProjectDir)\shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -157,8 +157,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -198,6 +197,8 @@
     <ClInclude Include="math\ray.h" />
     <ClInclude Include="math\SSE.h" />
     <ClInclude Include="math\vec3.h" />
+    <ClInclude Include="math\vec3_scalar.h" />
+    <ClInclude Include="math\vec3_SSE.h" />
     <ClInclude Include="misc\defines.h" />
     <ClInclude Include="misc\event_handler.h" />
     <ClInclude Include="misc\image.h" />

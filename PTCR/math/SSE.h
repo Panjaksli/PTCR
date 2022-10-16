@@ -1,6 +1,5 @@
 #pragma once
 #include <immintrin.h>
-#ifdef __SSE__
 
 inline __m128i _mm_xorshift32_epi32() {
 	thread_local static __m128i x{ 0x293a0c203c4c9ac3, 0x38304da1a654cb78 };
@@ -26,11 +25,7 @@ inline __m128 _mm_rafl_ps(float max) {
 inline __m128 _mm_rafl_ps(float min, float max) {
 	return min + (max - min) * _mm_rafl_ps();
 }
-inline void rafl_tuple(float r12[2]) {
-	__m128 r = _mm_rafl_ps();
-	r12[0] = r[0];
-	r12[1] = r[1];
-}
+
 inline void rafl_quad(float r12[4]) {
 	_mm_storeu_ps(r12, _mm_rafl_ps());
 }
@@ -79,4 +74,3 @@ inline __m128 _mm_cross_ps(__m128 const& u, __m128 const& v) {
 		_mm_mul_ps(tmp2, tmp3)
 	);
 }
-#endif

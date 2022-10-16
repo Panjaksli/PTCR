@@ -1,6 +1,8 @@
 #pragma once
-#include "SSE.h"
 #include "defines.h"
+#if USE_SSE
+#include "SSE.h"
+#endif
 
 inline static constexpr float todeg(float a) { return a * (180.0f / pi); }
 inline static constexpr float torad(float a) { return a * (pi / 180.0f); }
@@ -170,6 +172,20 @@ inline float rafl()
 	uint x = 0x3f800000 | (fastrand() & 0x007FFFFF);
 	return *(float*)&x - 1.f;
 }
+
+#if USE_SSE
+inline void rafl_tuple(float r12[2]) {
+	__m128 r = _mm_rafl_ps();
+	r12[0] = r[0];
+	r12[1] = r[1];
+}
+#else
+inline void rafl_tuple(float r12[2]) {
+	r12[0] = rafl();
+	r12[1] = rafl();
+}
+#endif
+
 
 inline float fract(float x) {
 	return x - floorf(x);
