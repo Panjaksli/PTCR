@@ -53,8 +53,8 @@ int main()
 	float& scale = scn.opt.res_scale;
 	scale = SCALE;
 	bool& moving = scn.cam.moving;
-	auto red = msha<pbr_tex>("concrete_orange.png", "concrete_mer.png", "concrete_normal.png", 5);
-	auto bog = msha<pbr_tex>("bog_a.png", "bog_m.png", "bog_n.png", 10000);
+	auto red = msha<pbr_tex>("gravel.png", "gravel_mer.png", "gravel_normal.png", 5);
+	auto bog = msha<pbr_tex>("iron_block.png", "iron_block_mer.png", "iron_block_normal.png", 10000);
 	auto white = msha<uni_tex>(vec3(.73, .73, .73));
 	auto green = msha<uni_tex>(vec3(.12, .45, .15));
 	auto blue = msha<uni_tex>(vec3(.12, .15, .45));
@@ -69,7 +69,7 @@ int main()
 	auto ll = msha<dir_light>(light);
 	auto gx = msha<pbr>(pbrr);
 	double l = 0.555;
-#if 1
+#if 0
 	scn.world.add(quad(vec3(0.213, l - eps, 0.227), vec3(0.343, l - eps, 0.227), vec3(0.213, l - eps, 0.332)), ll, 1);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(0, 0, l), vec3(0, l, 0)), lw);
 	scn.world.add(quad(vec3(l, 0, 0), vec3(l, 0, l), vec3(l, l, 0)), lg);
@@ -78,7 +78,7 @@ int main()
 	scn.world.add(quad(vec3(0, 0, l), vec3(l, 0, l), vec3(0, l, l)), mw);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(l, 0, 0), vec3(0, l, 0)), mw);
 	scn.world.add(sphere(vec3(l / 2, 0.1, l / 2, 0.1)), lr);
-#elif
+#else
 	scn.world.add(sphere(vec3(l / 2, 0.095f, l / 2, 0.1)), lr);
 	scn.world.add(quad(vec3(-1000, eps, -1000), vec3(1000, eps, -1000), vec3(-1000, eps, 1000)), mbog);
 #endif
@@ -151,6 +151,7 @@ int main()
 
 #if DEBUG
 			moving |= ImGui::DragFloat("Spec filter", &spec_filter, 1, 1, 1e6, "%.2e");
+			moving |= ImGui::Checkbox("Normal maps", &use_normal_maps);
 			moving |= ImGui::Checkbox("Debug Aten", &scn.opt.dbg_at); ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug N", &scn.opt.dbg_n);
 			moving |= ImGui::Checkbox("Debug UV", &scn.opt.dbg_uv);	ImGui::SameLine();

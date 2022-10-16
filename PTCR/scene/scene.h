@@ -94,28 +94,32 @@ public:
 
 inline vec3 scene::sample(const ray& r, const hitrec& rec, int depth) const {
 	matrec mat; vec3 aten;
+	vec3 P;
+	if (use_normal_maps) P = fma(rec.N, eps, rec.P);
+	else P = rec.P;
 	rec.mat->sample(r, rec, mat);
+	
 	if (not0(mat.spec) && rafl() < opt.spec_rate)
-		aten += (1.f / opt.spec_rate) * mat.spec * path_trace(ray(rec.P, mat.sr), depth - 1);
+		aten += (1.f / opt.spec_rate) * mat.spec * path_trace(ray(P, mat.sr), depth - 1);
 	if (not0(mat.diff))
 	{
 		if (opt.li_sa) {
 			if (opt.sun_sa) {
 				cos_pdf cosine(mat.N, mat.dr);
-				lig_pdf lights(world, rec.P);
-				sun_pdf sun(sun_pos, rec.P);
+				lig_pdf lights(world, P);
+				sun_pdf sun(sun_pos, P);
 				mix_pdf<sun_pdf, lig_pdf> ill(sun, lights);
 				mix_pdf<cos_pdf, mix_pdf<sun_pdf, lig_pdf>> mix(cosine, ill);
-				ray R(rec.P, mix.generate());
+				ray R(P, mix.generate());
 				float p1 = cosine.value(R.D);
 				float p2 = mix.value(R.D);
 				if (p1 > 0) aten += (p1 / p2) * mat.diff * path_trace(R, depth - 1);
 			}
 			else {
 				cos_pdf cosine(mat.N, mat.dr);
-				lig_pdf lights(world, rec.P);
+				lig_pdf lights(world, P);
 				mix_pdf<cos_pdf, lig_pdf> mix(cosine, lights);
-				ray R(rec.P, mix.generate());
+				ray R(P, mix.generate());
 				float p1 = cosine.value(R.D);
 				float p2 = mix.value(R.D);
 				if (p1 > 0) aten += (p1 / p2) * mat.diff * path_trace(R, depth - 1);
@@ -123,14 +127,14 @@ inline vec3 scene::sample(const ray& r, const hitrec& rec, int depth) const {
 		}
 		else if (opt.sun_sa) {
 			cos_pdf cosine(mat.N, mat.dr);
-			sun_pdf sun(sun_pos, rec.P);
+			sun_pdf sun(sun_pos, P);
 			mix_pdf<cos_pdf, sun_pdf> mix(cosine, sun);
-			ray R(rec.P, mix.generate());
+			ray R(P, mix.generate());
 			float p1 = cosine.value(R.D);
 			float p2 = mix.value(R.D);
 			if (p1 > 0) aten += (p1 / p2) * mat.diff * path_trace(R, depth - 1);
 		}
-		else aten += mat.diff * path_trace(ray(rec.P, mat.dr), depth - 1);
+		else aten += mat.diff * path_trace(ray(P, mat.dr), depth - 1);
 	}
 	return aten + mat.emis;
 }

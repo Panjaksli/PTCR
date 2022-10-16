@@ -65,6 +65,9 @@ inline vec3 operator+(vec3 u, vec3 v) { return u += v; }
 inline vec3 operator-(vec3 u, vec3 v) { return u -= v; }
 inline vec3 operator*(vec3 u, vec3 v) { return u *= v; }
 inline vec3 operator/(vec3 u, vec3 v) { return u /= v; }
+inline vec3 fma(vec3 a, vec3 b, vec3 c) {
+	return  _mm_fmadd_ps(a.xyz,b.xyz,c.xyz);
+}
 inline float operator&(vec3 u, vec3 v) {
 	return _mm_cvtss_f32(_mm_dp_ps(u.xyz, v.xyz, 0x71));
 }

@@ -1,6 +1,10 @@
 #pragma once
 #include "vec3.h"
-
+#if DEBUG
+static bool use_normal_maps = 1;
+#else
+constexpr bool use_normal_maps = 1;
+#endif
 class onb
 {
 public:
@@ -38,7 +42,7 @@ public:
 //map is texture value (0 to 1)
 inline vec3 normal_map(vec3 N, vec3 map)
 {
-	if (eq(map, vec3(0.5f, 0.5f, 1.f)))return N;
+	if (!use_normal_maps||eq(map, vec3(0.5f, 0.5f, 1.f)))return N;
 	onb uvw(N);
 	map = 2.f * map - 1.f;
 	return norm(uvw.local(map));
