@@ -21,7 +21,7 @@ struct obj_id {
 struct hitrec
 {
 	vec3 N, P;
-	material* mat;
+	uint mat;
 	float t=infp;
 	float u, v;	
 	bool face;

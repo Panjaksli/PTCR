@@ -6,7 +6,7 @@
 #include "samplers.h"
 #include "shading.h"
 #if DEBUG
-static float spec_filter = 10.f;
+extern float spec_filter;
 #else
 constexpr float spec_filter = 10.f;
 #endif
@@ -18,17 +18,14 @@ public:
 	vec3 diff, spec, emis; //Color: diffuse, specular, emissive
 };
 
-class material {
-public:
-	virtual ~material() = default;
-	inline virtual void sample(const ray& r, const hitrec& rec, matrec& mat)const = 0;
+enum mat_enum {
+	m_lam, m_mir, m_pbr, m_uli, m_dli
 };
 
-class lambert : public material {
+class lambert {
 public:
 	lambert(const albedo& _tex) :tex(_tex) {}
-	~lambert()override { tex.clean(); }
-	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
+	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 nor = tex.nor(rec.u, rec.v);
 		vec3 N = normal_map(rec.N, nor);
@@ -40,11 +37,10 @@ public:
 	}
 	albedo tex;
 };
-class mirror : public material {
+class mirror {
 public:
 	mirror(const albedo& _tex) :tex(_tex) {}
-	~mirror()override { tex.clean(); }
-	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
+	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 nor = tex.nor(rec.u, rec.v);
 		vec3 N = normal_map(rec.N, nor);
@@ -56,11 +52,10 @@ public:
 	}
 	albedo tex;
 };
-class pbr : public material {
+class pbr {
 public:
 	pbr(const albedo& _tex) :tex(_tex) {}
-	~pbr()override { tex.clean(); }
-	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
+	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 mer = tex.mer(rec.u, rec.v);
 		vec3 nor = tex.nor(rec.u, rec.v);
@@ -94,11 +89,10 @@ public:
 	}
 	albedo tex;
 };
-class uni_light : public material {
+class uni_light {
 public:
 	uni_light(const albedo& _tex) :tex(_tex) {}
-	~uni_light()override { tex.clean(); }
-	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
+	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		mat.N = rec.N;
 		mat.emis = rgb;
@@ -106,11 +100,10 @@ public:
 	albedo tex;
 };
 
-class dir_light : public material {
+class dir_light {
 public:
 	dir_light(const albedo& _tex) :tex(_tex) {}
-	~dir_light()override { tex.clean(); }
-	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const override {
+	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		mat.N = rec.N;
 		mat.emis = rec.face * rgb;
@@ -118,3 +111,51 @@ public:
 	albedo tex;
 };
 
+class mat_var {
+public:
+	mat_var(lambert mat) :l(mat), type(m_lam) {}
+	mat_var(mirror mat) :m(mat), type(m_mir) {}
+	mat_var(pbr mat) :p(mat), type(m_pbr) {}
+	mat_var(uni_light mat) :u(mat), type(m_uli) {}
+	mat_var(dir_light mat) :d(mat), type(m_dli) {}
+	mat_var(const mat_var& cpy) :type(cpy.type) {
+		switch (type) {
+		case m_lam: l = cpy.l; break;
+		case m_mir:	m = cpy.m; break;
+		case m_pbr: p = cpy.p; break;
+		case m_uli: u = cpy.u; break;
+		case m_dli: d = cpy.d; break;
+		default: return;
+		};
+	}
+	~mat_var() {
+		switch (type) {
+		case m_lam: l.~lambert(); break;
+		case m_mir:	m.~mirror(); break;
+		case m_pbr: p.~pbr(); break;
+		case m_uli: u.~uni_light(); break;
+		case m_dli: d.~dir_light(); break;
+		default: return;
+		};
+	}
+	inline void sample(const ray& r, const hitrec& rec, matrec& mat)const {
+		switch (type) {
+		case m_lam: return l.sample(r, rec, mat);
+		case m_mir: return m.sample(r, rec, mat);
+		case m_pbr: return p.sample(r, rec, mat);
+		case m_uli: return u.sample(r, rec, mat);
+		case m_dli: return d.sample(r, rec, mat);
+		default: return;
+		};
+	}
+
+
+	union {
+		lambert l;
+		mirror m;
+		pbr	p;
+		uni_light u;
+		dir_light d;
+	};
+	mat_enum type;
+};

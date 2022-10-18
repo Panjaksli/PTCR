@@ -1,10 +1,12 @@
 #pragma once
 #include "texture.h"
+#pragma pack(push,4)
 class albedo {
 public:
-	albedo(const texture& _rgb = texture(vec3(0.5,0,0.5)), const texture& _mer = texture(vec3(0, 0, 1)), const texture& _nor = texture(vec3(0.5, 0.5, 1))) :_rgb(_rgb), _mer(_mer), _nor(_nor) {}
+	albedo(const texture& _rgb = texture(vec3(0.5,0,0.5)), const texture& _mer = texture(vec3(0, 0, 1)), const texture& _nor = texture(vec3(0.5, 0.5, 1)), float _rep = 1.f) :
+		_rgb(_rgb), _mer(_mer), _nor(_nor),rep(_rep) {}
 	inline vec3 rgb(float u, float v)const {
-		vec3 rgb = _rgb.sample(u, v);
+		vec3 rgb = _rgb.sample(rep*u, rep*v);
 #if GAMMA2
 		return rgb * rgb;
 #else 
@@ -12,16 +14,13 @@ public:
 #endif
 	}
 	inline vec3 mer(float u, float v)const {
-		return _mer.sample(u, v);
+		return _mer.sample(rep*u, rep*v);
 	}
 	inline vec3 nor(float u, float v)const {
-		return _nor.sample(u, v);
-	}
-	void clean() {
-		_rgb.clean();
-		_mer.clean();
-		_nor.clean();
+		return _nor.sample(rep*u, rep*v);
 	}
 private:
 	texture _rgb, _mer, _nor;
+	float rep;
 };
+#pragma pack(pop)

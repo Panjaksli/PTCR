@@ -9,9 +9,27 @@
 #define WIDTH 800
 #define HEIGHT 600
 #define SCALE 1 //0.6666667f
+#if DEBUG
+float spec_filter = 10.f;
+bool use_normal_maps = 1;
+#endif
+void scn1(scene &scn) {
+	scn.world.clear();
+	albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 1e4);
+	albedo orange = albedo(texture("concrete_orange.png"), texture("concrete_mer.png"), texture("concrete_normal.png"), 10);
+	auto pbr_iron = pbr(iron);
+	auto pbr_orange = pbr(orange);
+	scn.world.add_mat(pbr_iron);
+	scn.world.add_mat(pbr_orange);
+	//scn.world.add(quad(vec3(-1000, eps, -1000), vec3(1000, eps, -1000), vec3(-1000, eps, 1000)), 1);
+	scn.world.add(sphere(vec3(0, 0.95f, -4, 1)), 1);
+	scn.world.add(quad(vec3(-1000, eps, -1000), vec3(1000, eps, -1000), vec3(-1000, eps, 1000)), 0);
+	scn.cam.T.set_P(vec3(0.0, 0.1, 0.0));
+	scn.cam.T.rot();
+}
+
 int main()
 {
-	sizeof(albedo);
 	uint width = WIDTH, height = HEIGHT;
 	SDL_Init(SDL_INIT_EVERYTHING);
 #if defined(_WIN32) || defined(WIN32)
@@ -53,17 +71,13 @@ int main()
 	float& scale = scn.opt.res_scale;
 	scale = SCALE;
 	bool& moving = scn.cam.moving;
-	albedo iron = albedo(texture("iron_block.png", 1e4), texture("iron_block_mer.png", 1e4), texture("iron_block_normal.png", 1e4));
-	albedo orange = albedo(texture("concrete_orange.png", 10), texture("concrete_mer.png", 10), texture("concrete_normal.png", 10));
-	auto pbr_iron = msha<pbr>(iron);
-	auto pbr_orange = msha<pbr>(orange);
-	double l = 0.555;
-	scn.world.add(sphere(vec3(l / 2, 0.095f, l / 2, 0.1)), pbr_orange);
-	scn.world.add(quad(vec3(-1000, eps, -1000), vec3(1000, eps, -1000), vec3(-1000, eps, 1000)), pbr_iron);
-
-	scn.cam.T.set_P(vec3(0.1, 0.1, 0.1));
-	scn.cam.T.rot();
+	scn1(scn);
+	
+	
+	printf("init done!!!");
+	
 	while (running) {
+		
 		//printf("%d", ss.size());
 		frametime = SDL_GetPerformanceCounter();
 		SDL_RenderClear(renderer);
@@ -113,7 +127,7 @@ int main()
 				moving = 1;
 				scn.cam.update();
 			}
-			ImGui::DragFloat("Speed", &scn.cam.speed, 0.001, 0.001, 10);
+			ImGui::DragFloat("Speed", &scn.cam.speed, 0.001, 0.001);
 			if (ImGui::DragFloat("Res scale", &scale, 0.01, 0.01, 2, " % .2f", ImGuiSliderFlags_AlwaysClamp))
 			{
 				scn.cam.resize(width, height, scale);

@@ -27,13 +27,13 @@ public:
 	inline vec3 raycol_at(const ray& r)const {
 		hitrec rec; matrec mat;
 		if (!world.hit(r, rec)) return 0;
-		rec.mat->sample(r, rec, mat);
+		world.materials[rec.mat].sample(r, rec, mat);
 		return mat.diff + mat.spec + mat.emis;
 	}
 	inline vec3 raycol_n(const ray& r)const {
 		hitrec rec; matrec mat;
 		if (!world.hit(r, rec)) return 0;
-		rec.mat->sample(r, rec, mat);
+		world.materials[rec.mat].sample(r, rec, mat);
 		return (mat.N + 1.f) * 0.5f;
 	}
 	inline vec3 raycol_uv(const ray& r)const {
@@ -97,7 +97,7 @@ inline vec3 scene::sample(const ray& r, const hitrec& rec, int depth) const {
 	vec3 P;
 	if (use_normal_maps) P = fma(rec.N, eps, rec.P);
 	else P = rec.P;
-	rec.mat->sample(r, rec, mat);
+	world.materials[rec.mat].sample(r, rec, mat);
 	
 	if (not0(mat.spec) && rafl() < opt.spec_rate)
 		aten += (1.f / opt.spec_rate) * mat.spec * path_trace(ray(P, mat.sr), depth - 1);

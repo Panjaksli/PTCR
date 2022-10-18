@@ -1,10 +1,9 @@
 #include "obj_list.h"
 void obj_list::clear()
 {
-	for (auto& obj : objects)
-		obj.clean();
 	objects.clear();
 	lights.clear();
+	materials.clear();
 	bbox = aabb();
 }
 obj_id obj_list::get_id(const ray& r, hitrec& rec) const

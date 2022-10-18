@@ -1,7 +1,7 @@
 #pragma once
 #include "vec3.h"
 #if DEBUG
-static bool use_normal_maps = 1;
+extern bool use_normal_maps;
 #else
 constexpr bool use_normal_maps = 1;
 #endif
