@@ -4,8 +4,7 @@
 class voxel {
 public:
 	voxel() {}
-	//a = half side lenght
-	voxel(vec3 Q, float a) :Qa(Q, a) {}
+	voxel(vec3 Q, float a) :Qa(Q,a) {}
 	voxel(vec4 _Qa) :Qa(_Qa) {}
 
 	inline aabb get_box()const {
@@ -13,7 +12,7 @@ public:
 	}
 
 	inline voxel trans(const matrix& T) const {
-		return voxel(Qa + T.P());
+		return voxel(Qa+T.P());
 	}
 	inline bool hit(const ray& r, hitrec& rec) const
 	{
@@ -23,10 +22,9 @@ public:
 		vec3 tmax = max(t1, t2);
 		float mint = max(tmin);
 		float maxt = min(tmax);
-		if (mint > maxt) return false;
-		bool face = mint > 0;
+		bool face = mint > eps;
 		float t = face ? mint : maxt;
-		if (inside(t, eps2, rec.t))
+		if (mint <= maxt && inside(t, eps2, rec.t))
 		{
 			vec3 P = r.at(t);
 			vec3 W = (P - Qa) / Qa.w;
@@ -35,8 +33,8 @@ public:
 			rec.N = face ? N : -N;
 			rec.P = r.at(t);
 			rec.t = t;
-			rec.u = fabs(UV.x - 0.5f) > eps ? UV.x : UV.z;
-			rec.v = fabs(UV.y - 0.5f) > eps ? UV.y : UV.z;
+			rec.u =  fabs(UV.x - 0.5f) > eps2 ? UV.x : UV.z;
+			rec.v =  fabs(UV.y - 0.5f) > eps2 ? UV.y : UV.z;
 			rec.face = face;
 			return true;
 		}
@@ -45,64 +43,11 @@ public:
 	inline float pdf(const ray& r)const {
 		hitrec rec;
 		if (!hit(r, rec))return 0;
-		float S = 4 * Qa.w * Qa.w;
-		float NoL = absdot(r.D, rec.N);
-		if (!rec.face)return rec.t * rec.t / (6.f * S * NoL);
-		else {
-			//computes visible faces (took looooong enough to figure out, 10 hours)
-			//if point's bound is inside 2 coordinates of box, it can see only one face,
-			//if only one bound is inside, it can see 2 faces,
-			//and when none coordinates are inside, 3 faces are visible
-			//multiply S by number of visible faces to get correct pdf
-			vec3 faces = vec_ins(r.O, A(), B());
-			float visible = 3.f - dot(faces, 1.f);
-			return rec.t * rec.t / (visible * S * NoL);
-		}
+		float S = Qa.w * Qa.w;
+		return rec.t * rec.t / S;
 	}
 	inline vec3 rand_to(vec3 O) const {
-		//sample until visible face is hit, or point is inside cuboid
-		bool inside = gt(O, A()) && lt(O, B());
-		while (1)
-		{
-#if 1
-			vec3 r = ravec();
-			vec3 W = r / max(fabs(r));
-			vec3 N = toint(1.00001f * W);
-			bool dir = rafl() < 0.5f;
-			for (int i = 0; i < 3; i++) {
-				vec3 P = Qa + Qa.w * W;
-				vec3 L = P - O;
-				if (inside || dot(L, N) < 0)
-					return norm(L);
-				else {
-					vec3 P = Qa - Qa.w * W;
-					vec3 L = P - O;
-					if (dot(L, N) > 0)
-						return norm(L);
-				}
-				if (dir)
-				{
-					W = rotl3(W);
-					N = rotl3(N);
-				}
-				else {
-					W = rotr3(W);
-					N = rotr3(N);
-				}
-			}
-			
-#else
-			vec3 r = ravec();
-			vec3 W = r / max(fabs(r));
-			vec3 N = toint(1.00001f * W);
-			vec3 P = Qa + Qa.w * W;
-			vec3 L = P - O;
-			if (inside || dot(L, N) < 0)return norm(L);
-			P = Qa - Qa.w * W;
-			L = P - O;
-			if (dot(L, N) > 0)return norm(L);
-#endif
-		}
+		return 0;
 	}
 	inline vec3 rand_from() const {
 		float r[2]; rafl_tuple(r);

@@ -17,22 +17,19 @@ public:
 	inline vec3 v() const { return uvw[1]; }
 	inline vec3 w() const { return uvw[2]; }
 
-	inline vec3 world(const vec3& a) const {
+	inline vec3 local(const vec3& a) const {
 		return a.x * u() + a.y * v() + a.z * w();
 	}
-	inline vec3 local(const vec3& a)const {
-		return vec3(dot(a, u()), dot(a, v()), dot(a, w()));
-	}
-	/*
-	branchlessONB
-	https://graphics.pixar.com/library/OrthonormalB/paper.pdf
-	*/
+		/*
+		branchlessONB
+		https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+		*/
 	inline void build(const vec3& w) {
 		vec3 u, v;
 		float sign = signf(w.z);
 		const float a = -1.0f / (sign + w.z);
 		const float b = w.x * w.y * a;
-		u = vec3(1.0f + sign * w.x * w.x * a, sign * b, -sign * w.x);
+		u= vec3(1.0f + sign * w.x * w.x * a, sign * b, -sign * w.x);
 		v = vec3(b, sign + w.y * w.y * a, -w.y);
 		uvw[0] = u;
 		uvw[1] = v;
@@ -48,5 +45,5 @@ inline vec3 normal_map(vec3 N, vec3 map)
 	if (!use_normal_maps||eq(map, vec3(0.5f, 0.5f, 1.f)))return N;
 	onb uvw(N);
 	map = 2.f * map - 1.f;
-	return norm(uvw.world(map));
+	return norm(uvw.local(map));
 }

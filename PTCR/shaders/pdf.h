@@ -15,19 +15,10 @@ public:
 	}
 	vec3 N, L;
 };
-//class vnd_pdf {
-//public:
-//	vnd_pdf() {}
-//	vnd_pdf(vec3 _N,vec3 _H, vec3 _V) : N(_N),H(_H) V(_V) {}
-//
-//	inline float value(vec3 V) const {
-//		return MGGX()
-//	}
-//	inline vec3 generate() const {
-//		return V;
-//	}
-//	vec3 N, H, V;
-//};
+class bid_pdf
+{
+
+};
 class lig_pdf {
 public:
 	lig_pdf(const obj_list& _obj, vec3 _O) : obj(_obj), O(_O) {}
@@ -56,7 +47,7 @@ public:
 		return pdf / dp;
 	}
 	inline vec3 generate() const {
-		vec3 r = sa_disk();
+		float r[2]; rafl_tuple(r);
 		vec3 V = T * norm(vec3(r[0], sun_angle, r[1]));
 		return V;
 	}
@@ -68,7 +59,7 @@ class mix_pdf {
 public:
 	mix_pdf(const P1& _p1, const P2& _p2) :p1(_p1), p2(_p2) {}
 	inline float value(vec3 V) const {
-		return  0.5f * (p1.value(V) + p2.value(V));
+		return 0.5f * (p1.value(V) + p2.value(V));
 	}
 	inline vec3 generate() const {
 		if (rafl() < 0.5f)
@@ -80,5 +71,42 @@ public:
 	const P1& p1;
 	const P2& p2;
 };
+template <class P1, class P2>
+class bias_pdf {
+public:
+	bias_pdf(const P1& _p1, const P2& _p2, float _b = 0.5f) :p1(_p1), p2(_p2),b(_b) {}
+	inline float value(vec3 V) const {
+		return b * p1.value(V) + (1.f - b) * p2.value(V);
+	}
+	inline vec3 generate() const {
+		if (rafl() < b)
+			return p1.generate();
+		else
+			return p2.generate();
+	}
 
+	const P1& p1;
+	const P2& p2;
+	float b;
+};
+template <class P1, class P2, class P3>
+class mix3_pdf {
+public:
+	mix3_pdf(const P1& _p1, const P2& _p2, const P3& _p3) :p1(_p1), p2(_p2),p3(_p3) {}
+	inline float value(vec3 V) const {
+		return (1.f / 3.f) * (p1.value(V) + p2.value(V) + p3.value(V));
+	}
+	inline vec3 generate() const {
+		if (rafl() < (1.f / 3.f))
+			return p1.generate();
+		else if (rafl() < (2.f / 3.f))
+			return p2.generate();
+		else
+			return p3.generate();
+	}
+
+	const P1& p1;
+	const P2& p2;
+	const P3& p3;
+};
 

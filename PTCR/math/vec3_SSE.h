@@ -1,6 +1,5 @@
 #pragma once
 #include "util.h"
-#include <smmintrin.h>
 class __declspec(align(16)) vec3
 {
 public:
@@ -77,7 +76,7 @@ inline vec3 operator%(vec3 u, vec3 v)
 }
 inline vec3 sqrt(vec3 u)
 {
-	return _mm_sqrt_ps(u.xyz);
+	return sqrt(u.xyz);
 }
 inline vec3 abs(vec3 u)
 {
@@ -86,14 +85,6 @@ inline vec3 abs(vec3 u)
 inline vec3 fabs(vec3 u)
 {
 	return abs(u);
-}
-inline vec3 copysign(vec3 u, vec3 v)
-{
-	return _mm_sign_ps(u.xyz, v.xyz);
-}
-inline vec3 flipsign(vec3 u, vec3 v)
-{
-	return _mm_flipsign_ps(u.xyz, v.xyz);
 }
 inline vec3 sign(vec3 u) {
 	return _mm_sign_ps(u.xyz);
@@ -116,49 +107,12 @@ inline float dot4(vec3 u, vec3 v) { return _mm_cvtss_f32(_mm_dp_ps(u.xyz, v.xyz,
 inline float posdot(vec3 u, vec3 v) { return fmaxf(0.f, u & v); }
 inline float absdot(vec3 u, vec3 v) { return fabsf(u & v); }
 inline float dotabs(vec3 u, vec3 v) { return (abs(u) & abs(v)); }
-
-inline vec3 rotr3(vec3 x)
-{
-	return _mm_shuffle_ps(x.xyz, x.xyz, 0b11010010);
-}
-inline vec3 rotr4(vec3 x)
-{
-	return _mm_shuffle_ps(x.xyz, x.xyz, 0b10010011);
-}
-
-inline vec3 rotl3(vec3 x)
-{
-	return _mm_shuffle_ps(x.xyz, x.xyz, 0b11001001);
-}
-inline vec3 rotl4(vec3 x)
-{
-	return _mm_shuffle_ps(x.xyz, x.xyz, 0b00111001);
-}
-
-inline vec3 vec_ins(vec3 u, vec3 min, vec3 max) {
-	__m128 gt = _mm_cmpgt_ps(u.xyz, min.xyz);
-	__m128 lt = _mm_cmplt_ps(u.xyz, max.xyz);
-	return _mm_and_ps(_mm_and_ps(gt, lt), _mm_set1_ps(1.f));
-}
-inline vec3 vec_wit(vec3 u, vec3 min, vec3 max) {
-	__m128 gt = _mm_cmpge_ps(u.xyz, min.xyz);
-	__m128 lt = _mm_cmple_ps(u.xyz, max.xyz);
-	return _mm_and_ps(_mm_and_ps(gt, lt), _mm_set1_ps(1.f));
-}
 inline vec3 vec_gt(vec3 u, vec3 v) {
 	__m128 mask = _mm_cmpgt_ps(u.xyz, v.xyz);
 	return _mm_and_ps(mask, _mm_set1_ps(1.f));
 }
 inline vec3 vec_lt(vec3 u, vec3 v) {
 	__m128 mask = _mm_cmplt_ps(u.xyz, v.xyz);
-	return _mm_and_ps(mask, _mm_set1_ps(1.f));
-}
-inline vec3 vec_ge(vec3 u, vec3 v) {
-	__m128 mask = _mm_cmpge_ps(u.xyz, v.xyz);
-	return _mm_and_ps(mask, _mm_set1_ps(1.f));
-}
-inline vec3 vec_le(vec3 u, vec3 v) {
-	__m128 mask = _mm_cmple_ps(u.xyz, v.xyz);
 	return _mm_and_ps(mask, _mm_set1_ps(1.f));
 }
 inline vec3 vec_eq(vec3 u, vec3 v) {
@@ -173,27 +127,6 @@ inline vec3 vec_eq_tol(vec3 u, vec3 v) {
 	vec3 w = fabs(u - v);
 	return vec_lt(w, eps);
 }
-inline vec3 vec_near0(vec3 u)
-{
-	u = fabs(u);
-	__m128 v = _mm_cmplt_ps(u.xyz, _mm_set1_ps(eps));
-	return _mm_and_ps(v, _mm_set1_ps(1.f));
-}
-inline vec3 vec_not0(vec3 u) {
-	u = fabs(u);
-	__m128 v = _mm_cmpge_ps(u.xyz, _mm_set1_ps(eps));
-	return _mm_and_ps(v, _mm_set1_ps(1.f));
-}
-
-inline bool gt(vec3 u, vec3 v) {
-	__m128 mask = _mm_cmplt_ps(u.xyz, v.xyz);
-	return !(_mm_movemask_ps(mask) & 0b0111);
-}
-inline bool lt(vec3 u, vec3 v) {
-	__m128 mask = _mm_cmpgt_ps(u.xyz, v.xyz);
-	return !(_mm_movemask_ps(mask) & 0b0111);
-}
-
 inline bool eq(vec3 u, vec3 v)
 {
 	__m128 w = _mm_cmpneq_ps(u.xyz, v.xyz);
@@ -230,14 +163,6 @@ inline bool not0(vec3 u) {
 	u = fabs(u);
 	__m128 v = _mm_cmpge_ps(u.xyz, _mm_set1_ps(eps));
 	return (_mm_movemask_ps(v) & 0b0111);
-}
-inline float sum(vec3 u)
-{
-	return (u.x + u.y + u.z);
-}
-inline float avg(vec3 u)
-{
-	return (1 / 3.f) * sum(u);
 }
 
 inline float min(vec3 u)
@@ -290,7 +215,6 @@ inline vec3 reflect(const vec3 v, const vec3 n)
 {
 	return v - 2.f * dot(v, n) * n;
 }
-
 inline vec3 normal(const vec3 u, const vec3 v) {
 	vec3 uv = cross(u, v);
 	vec3 N = norm(uv);
@@ -315,20 +239,9 @@ inline vec3 cos(vec3 x)
 	x = fabs(x - pi) - hpi;
 	return fast_sin(x);
 }
-inline vec3 cossin(float x) {
-	float x1 = fabsf(x - pi) - hpi;
-	x = fminf(x, pi - x);
-	x = fmaxf(x, -pi - x);
-	return fast_sin(vec3(x1, x));
-}
-inline vec3 sincos(float x) {
-	float x1 = fabsf(x - pi) - hpi;
-	x = fminf(x, pi - x);
-	x = fmaxf(x, -pi - x);
-	return fast_sin(vec3(x, x1));
-}
+
 inline vec3 ravec() {
-	return 2 * vec3(_mm_rafl_ps()) - 1;
+	return vec3(_mm_rafl_ps());
 }
 inline vec3 ravec(float min, float max) {
 	return vec3(_mm_rafl_ps(min, max));
@@ -336,16 +249,16 @@ inline vec3 ravec(float min, float max) {
 inline vec3 ra_disk()
 {
 	vec3 u(0);
-	rafl_tuple_sym(u._xyz);
+	rafl_tuple(u._xyz);
 	while (u.len2() >= 1.f)
-		rafl_tuple_sym(u._xyz);
+		rafl_tuple(u._xyz);
 	return u;
 }
 inline vec3 ra_sph()
 {
-	vec3 u(ravec());
+	vec3 u(ravec(-1, 1));
 	while (u.len2() >= 1.f)
-		u = ravec();
+		u = ravec(-1, 1);
 	return u;
 }
 inline vec3 ra_hem(vec3 v)
@@ -357,18 +270,14 @@ inline vec3 ra_hem(vec3 v)
 		return -u;
 }
 
-
-
-/*
-RGB MISC
-*/
-
-
 inline float luminance(vec3 rgb)
 {
 	return (0.2126f * rgb.x + 0.7152f * rgb.y + 0.0722f * rgb.z);
 }
-
+inline float sum3(vec3 rgb)
+{
+	return (rgb.x + rgb.y + rgb.z) * (1.f / 3.f);
+}
 inline vec3 unrgb(const uint& rgb) {
 	vec3 v;
 	v.x = rgb & 0x000000ff;

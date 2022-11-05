@@ -1,58 +1,40 @@
 #pragma once
 #include "vec3.h"
 #include "onb.h"
-inline vec3 sa_disk() {
-	float r[2]; rafl_tuple(r);
-	float phi = pi2 * r[0];
-	return sqrtf(r[1]) * cossin(phi);
-}
-inline vec3 sa_uni()
-{
-	float r[2]; rafl_tuple(r);
-	const float phi = pi2 * r[0];
-	vec3 d = sqrtf(1.f - r[1] * r[1]) * cossin(phi);
-	return d + vec3(0, 0, r[1]);
-}
 inline vec3 sa_cos()
 {
-	float r[2]; rafl_tuple(r);
+	float r[2];
+	rafl_tuple(r);
 	const float phi = pi2 * r[0];
-	vec3 d = sqrtf(r[1]) * cossin(phi);
-	return d + vec3(0, 0, sqrtf(1.f - r[1]));
+	const float x = fcos(phi) * sqrtf(r[1]);
+	const float y = fsin(phi) * sqrtf(r[1]);
+	const float z = sqrtf(1.f - r[1]);
+
+	return vec3(x, y, z);
+}
+
+inline vec3 sa_uni()
+{
+	float r[2];
+	rafl_tuple(r);
+	const float phi = pi2 * r[1];
+	const float root = sqrtf(1.f - r[0] * r[0]);
+	const float x = fcos(phi) * root;
+	const float y = fsin(phi) * root;
+	const float z = r[0];
+
+	return vec3(x, y, z);
 }
 /*
 From:
 https://schuttejoe.github.io/post/ggximportancesamplingpart1/
-Simplified by ME
 */
-inline vec3 sa_ggx(float a) {
-	float r[2]; rafl_tuple(r);
-	const float phi = pi2 * r[0];
-	float z2 = (1.0f - r[1]) / ((a * a - 1.0f) * r[1] + 1.0f);
-	vec3 d = sqrtf(1.f - z2) * cossin(phi);
-	return d + vec3(0, 0, sqrtf(z2));
+inline vec3 sa_ggx2(float a) {
+	float r[2];
+	rafl_tuple(r);
+	float a2 = a * a;
+	float theta = facos(sqrtf((1.0f - r[0]) / ((a2 - 1.0f) * r[0] + 1.0f)));
+	float phi = pi2 * r[1];
+	return vec3(fcos(phi) * fsin(theta), fsin(phi) * fsin(theta), fcos(theta));
 }
-/*https://hal.archives-ouvertes.fr/hal-01509746/document
-Also simplified by ME
-*/
-inline vec3 sa_vndf(vec3 V_, float ro)
-{
-	float r[2]; rafl_tuple(r);
-	r[0] = sqrtf(r[0]);
-	vec3 scl = vec3(ro, ro, 1.f, 1.f);
-	vec3 V = norm(scl * vec3(V_.x, V_.y, V_.z));
-	vec3 T1 = (V.z < 0.9999f) ? norm(cross(V, vec3(0, 0, 1))) : vec3(1, 0, 0);
-	vec3 T2 = cross(T1, V);
-	float a = 1.0f / (1.0f + V.z);
-	float b = r[1] - a;
-	bool neg = b < 0;
-	float phi = neg ? pi * r[1] / a : pi + pi * b / (1.0f - a);
-	vec3 ang = r[0] * cossin(phi);
-	float P1 = ang.x;
-	float P2 = neg ? ang.y : ang.y * V.z;
-	float P3 = sqrtf(1.0f - P1 * P1 - P2 * P2);
-	vec3 N = P1 * T1 + P2 * T2 + P3 * V;
-	N.z = fmaxf(N.z, 0);
-	N = norm(scl * N);
-	return N;
-}
+

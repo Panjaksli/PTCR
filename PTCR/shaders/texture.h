@@ -1,7 +1,12 @@
 #pragma once
 #include "vec3.h"
-void save_png(void* data, uint w, uint h);
-#pragma pack(push,2)
+#include "image.h"
+struct tex_data {
+	tex_data(){}
+	tex_data(vec3 col, vec3 mer, vec3 nor) :col(col), mer(mer), nor(nor) {}
+	vec3 col, mer, nor;
+};
+
 class texture {
 public:
 	virtual ~texture() = default;
@@ -107,24 +112,10 @@ private:
 		aten *= 1.f / 255.f;
 		return aten;
 	}
-	inline void set_col(vec3 _rgb) {
-		if (solid)rgb = _rgb;
-	}
-	inline vec3 get_col()
-	{
-		return solid*rgb;
-	}
-private:
-	union {
-		struct {
-			uchar* data;
-			uint w, h;
-		};
-		vec3 rgb;
-	};
-	bool solid;
-	void clear() { if (!solid) free(data); }
-	bool load(const std::string filename);
-	
+
+	image rgba;
+	image met;
+	image map;
+	float repeat;
 };
 

@@ -6,48 +6,6 @@
 #include <imgui_impl_sdlrenderer.h>
 #include "scene.h"
 #include "event_handler.h"
-#define WIDTH 800
-#define HEIGHT 600
-#define SCALE 1 //0.6666667f
-#if DEBUG
-float spec_filter = 10.f;
-bool use_normal_maps = 1;
-#endif
-void scn1(scene& scn) {
-	scn.world.clear();
-	albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 2e3);
-	albedo snow = albedo(texture("snow.png"), texture("snow_mer.png"), texture("iron_block_normal.png"), 2e3);
-	albedo white(vec3(0.8, 0.8, 0.8));
-	albedo pbrcol(vec3(0.5, 0.1, 0.1),vec3(), texture("iron_block_normal.png"),10);
-	//auto pbr_iron = pbr(iron);
-	//auto pbr_orange = pbr(orange);
-	//scn.world.add_mat(iron, mat_ggx);
-    scn.world.add_mat(iron, mat_ggx);
-	scn.world.add_mat(pbrcol, mat_ggx);
-	scn.world.add_mat(pbrcol, mat_vnd);
-	//scn.world.add_mat(white, mat_uli);
-	//scn.world.add_mat(white,mat_lam);
-	/*vector<quad> room;
-	room.push_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 0, 1)));
-	room.push_back(quad(vec3(-1, 0, -1), vec3(-1, 2, -1), vec3(-1, 0, 1)));
-	room.push_back(quad(vec3(3, 0, -1), vec3(3, 1.5, -1), vec3(3, 0, 1)));
-	room.push_back(quad(vec3(-1, 2, -1), vec3(3, 2, -1), vec3(-1, 2, 1)));
-	room.push_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 2, -1)));
-	room.push_back(quad(vec3(-1, 0, 1), vec3(3, 0, 1), vec3(-1, 2, 1)));
-	scn.world.add(room, 1);
-	scn.world.add(quad(vec3(0,0,0), vec3(1, 0, 0), vec3(0, 1, 0.999)), 0);
-	scn.world.add(voxel(vec3(0, 1.9, 0, 0.1)), 3, 1);*/
-	scn.world.add(quad(vec3(-100, eps, -100), vec3(100, eps, -100), vec3(-100, eps, 100)), 0);
-	scn.world.add(sphere(vec3(-1, 0.95f, -3, 1)), 1);
-	scn.world.add(sphere(vec3(1, 0.95f, -3, 1)), 2);
-	//scn.world.add(voxel(vec3(0, 0.95f, 3, 1)), 3, 1);
-	//scn.world.add(sphere(vec3(3, 0.95f, 0, 1)), 0);
-	//scn.world.add(sphere(vec3(-3, 0.95f, 0, 1)), 0);
-	
-	scn.cam.T.set_P(vec3(0.0, 0.5, 0.0));
-	scn.cam.T.rot();
-}
-
 int main()
 {
 	sizeof(mesh_var);
@@ -60,10 +18,11 @@ int main()
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
 #endif
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-	SDL_Window* window = SDL_CreateWindow("RTCR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * 16 / 12, height, SDL_WINDOW_SHOWN);
+	SDL_Window* window = SDL_CreateWindow("RTCR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE);
 	SDL_SetWindowMinimumSize(window, 200, 200);
 	SDL_Texture* frame;
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -82,7 +41,7 @@ int main()
 	bool running = true;
 	matrix T;
 	vec3 TP, TA;
-	SDL_Rect out = { 0,0,WIDTH,HEIGHT };
+
 	double frametime = 0;
 	double target_fps = 90;
 	double mov = 1;
@@ -94,10 +53,39 @@ int main()
 	float& scale = scn.opt.res_scale;
 	scale = SCALE;
 	bool& moving = scn.cam.moving;
-	scn1(scn);
-	printf("init done!!!");
-
+	auto red = msha<pbr_tex>("gravel.png", "gravel_mer.png", "gravel_normal.png", 5);
+	auto bog = msha<pbr_tex>("iron_block.png", "iron_block_mer.png", "iron_block_normal.png", 10000);
+	auto white = msha<uni_tex>(vec3(.73, .73, .73));
+	auto green = msha<uni_tex>(vec3(.12, .45, .15));
+	auto blue = msha<uni_tex>(vec3(.12, .15, .45));
+	auto light = msha<uni_tex>(vec3(1, 1, 1, 20));
+	auto pbrr = msha<uni_tex>(vec3(0.9, 0.9, 0.9, 1));
+	auto lr = msha<pbr>(red);
+	auto mbog = msha<pbr>(bog);
+	auto lw = msha<lambert>(white);
+	auto lb = msha<lambert>(blue);
+	auto mw = msha<mirror>(white);
+	auto lg = msha<lambert>(green);
+	auto ll = msha<dir_light>(light);
+	auto gx = msha<pbr>(pbrr);
+	double l = 0.555;
+#if 1
+	scn.world.add(quad(vec3(0.213, l - eps, 0.227), vec3(0.343, l - eps, 0.227), vec3(0.213, l - eps, 0.332)), ll, 1);
+	scn.world.add(quad(vec3(0, 0, 0), vec3(0, 0, l), vec3(0, l, 0)), lw);
+	scn.world.add(quad(vec3(l, 0, 0), vec3(l, 0, l), vec3(l, l, 0)), lg);
+	scn.world.add(quad(vec3(0, 0, 0), vec3(l, 0, 0), vec3(0, 0, l)), lb);
+	scn.world.add(quad(vec3(0, l, 0), vec3(l, l, 0), vec3(0, l, l)), lw);
+	scn.world.add(quad(vec3(0, 0, l), vec3(l, 0, l), vec3(0, l, l)), mw);
+	scn.world.add(quad(vec3(0, 0, 0), vec3(l, 0, 0), vec3(0, l, 0)), mw);
+	scn.world.add(sphere(vec3(l / 2, 0.1, l / 2, 0.1)), lr);
+#else
+	scn.world.add(sphere(vec3(l / 2, 0.095f, l / 2, 0.1)), lr);
+	scn.world.add(quad(vec3(-1000, eps, -1000), vec3(1000, eps, -1000), vec3(-1000, eps, 1000)), mbog);
+#endif
+	scn.cam.T.set_P(vec3(0.1, 0.1, 0.1));
+	scn.cam.T.rot();
 	while (running) {
+		//printf("%d", ss.size());
 		frametime = SDL_GetPerformanceCounter();
 		SDL_RenderClear(renderer);
 		while (SDL_PollEvent(&event))
@@ -138,22 +126,15 @@ int main()
 		ImGui_ImplSDLRenderer_NewFrame();
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
-		ImGui::SetNextWindowPos(ImVec2(WIDTH, 0));
-		ImGui::SetNextWindowSize(ImVec2(WIDTH * 16 / 12 - WIDTH, HEIGHT / 2));
 		if (overlay)
 		{
 			ImGui::Begin("Camera settings");
-			if (ImGui::Button("Screenshot")) {
-				save_png(scn.image(), scn.cam.w, scn.cam.h);
-			}
 			if (ImGui::DragFloat("FOV", &scn.cam.fov, 0.1, 0.001, 179, "%.1f"))
 			{
 				moving = 1;
 				scn.cam.update();
 			}
-			ImGui::DragFloat("Speed", &scn.cam.speed, 0.001, 0.001, 1e3f);
-			moving |= ImGui::DragFloat("F-stop", &scn.cam.fstop, 0.1, 0.1, 64.f);
-
+			ImGui::DragFloat("Speed", &scn.cam.speed, 0.001, 0.001, 10);
 			if (ImGui::DragFloat("Res scale", &scale, 0.01, 0.01, 2, " % .2f", ImGuiSliderFlags_AlwaysClamp))
 			{
 				scn.cam.resize(width, height, scale);
@@ -162,44 +143,33 @@ int main()
 				frame = SDL_CreateTexture(renderer, Format, SDL_TEXTUREACCESS_STREAMING, scn.cam.w, scn.cam.h);
 			}
 			ImGui::DragFloat("Render Rate", &scn.opt.res_rate, 0.01, 0.01, 1, "%.2f");
-			if (ImGui::DragFloat("Ray lifetime", &scn.opt.p_life, 0.01, 0.0, 1, "%.2f"))scn.opt.i_life = 1.f / scn.opt.p_life;
+			ImGui::DragFloat("Specular Rate", &scn.opt.spec_rate, 0.01, 0.0, 1, "%.2f");
 			ImGui::DragInt("Samples", &scn.opt.samples, 0.1, 0, 100);
 			moving |= ImGui::DragInt("Bounces", &scn.opt.bounces, 0.1, 0, 100);
-			moving |= ImGui::Checkbox("Light sampling", &scn.opt.li_sa); ImGui::SameLine();
+			moving |= ImGui::Checkbox("Light sampling", &scn.opt.li_sa);
 			moving |= ImGui::Checkbox("Sun sampling", &scn.opt.sun_sa);
 
 #if DEBUG
-			
+			moving |= ImGui::DragFloat("Spec filter", &spec_filter, 1, 1, 1e6, "%.2e");
+			moving |= ImGui::Checkbox("Normal maps", &use_normal_maps);
 			moving |= ImGui::Checkbox("Debug Aten", &scn.opt.dbg_at); ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug N", &scn.opt.dbg_n);
 			moving |= ImGui::Checkbox("Debug UV", &scn.opt.dbg_uv);	ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug t", &scn.opt.dbg_t);
-			moving |= ImGui::Checkbox("Normal maps", &use_normal_maps);
-			moving |= ImGui::Checkbox("Recursion", &scn.opt.recur);
-			moving |= ImGui::Checkbox("Perf mode", &scn.opt.p_mode);
 			static bool denoise = 1;
 			ImGui::Checkbox("Denoise", &denoise);// ImGui::SameLine();
 			//ImGui::Checkbox("Median", &Median);
 			moving |= !denoise;
 #endif
-			ImGui::Text("%.2f ms %.1f FPS, %.0f", 1000.0f / smooth_fps, smooth_fps, scn.cam.CCD.t);
+			ImGui::Text("%.3f ms/frame (%.1f FPS), frame %.0f", 1000.0f / smooth_fps, smooth_fps, scn.cam.CCD.t);
 
 			ImGui::End();
-			ImGui::SetNextWindowPos(ImVec2(WIDTH, HEIGHT / 2));
-			ImGui::SetNextWindowSize(ImVec2(WIDTH * 16 / 12 - WIDTH, HEIGHT / 2));
+
 			ImGui::Begin("Object properties");
 			ImGui::Text("ID: %d, Type: %d", id.id, id.type);
-			if(id.type!=o_bla){
-			albedo& alb = scn.world.materials[scn.world.objects[id.id].get_mat()].tex;
-			int type = (int)scn.world.materials[scn.world.objects[id.id].get_mat()].type;
-			vec3 col = alb.get_rgb(), mer = alb.get_mer();
-			moving |= ImGui::SliderInt("Mat", &type,0,5);
-			moving |= ImGui::ColorEdit4("Col", col._xyz, ImGuiColorEditFlags_Float);
-			moving |= ImGui::ColorEdit3("Mer", mer._xyz, ImGuiColorEditFlags_Float);
-			scn.world.materials[scn.world.objects[id.id].get_mat()].type = (mat_enum)type;
-			alb.set_rgb(col);
-			alb.set_mer(mer);
-			}
+			static vec3 col, mer;
+			//moving |= ImGui::ColorEdit4("Col", pbrr->rgba._xyz);
+			//moving |= ImGui::ColorEdit3("Mer", pbrr->met._xyz);
 			if (ImGui::DragFloat3("Pos", TP._xyz, 0.01))
 			{
 				T.set_P(TP);
@@ -218,8 +188,7 @@ int main()
 
 		scn.render();
 		SDL_UpdateTexture(frame, NULL, scn.image(), scn.cam.w * 4);
-
-		SDL_RenderCopy(renderer, frame, NULL, &out);
+		SDL_RenderCopy(renderer, frame, NULL, NULL);
 		ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
 		SDL_RenderPresent(renderer);
 		frametime = (SDL_GetPerformanceCounter() - frametime) / SDL_GetPerformanceFrequency();

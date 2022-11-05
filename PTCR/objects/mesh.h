@@ -3,34 +3,24 @@
 #include "tri.h"
 #include "quad.h"
 #include "voxel.h"
-#pragma pack(push, 4)
+#pragma pack(push, 8)
 template <class primitive>
 class mesh {
 public:
 	mesh() {}
-	mesh(const primitive& _prim, uint _mat) :prim(new primitive[1]{_prim}), mat(_mat), size(1), lw(1.f) {
+	mesh(const primitive &_prim, sptr<material> _mat) :prim(new primitive(_prim)), mat(_mat.get()), size(1), lw(1.f) {
 		fit();
 	}
-	mesh(const vector<primitive> &_prim, uint _mat) :prim(new primitive[_prim.size()]), mat(_mat), size(_prim.size()), lw(1.f / size) {
-		memcpy(prim, &_prim[0], size * sizeof(primitive));
+	mesh(const vector<primitive> &_prim, sptr<material> _mat) :prim(new primitive[_prim.size()]), mat(_mat.get()), size(_prim.size()), lw(1.f / size) {
+		for (uint i = 0; i < _prim.size(); i++)
+			prim[i] = _prim[i];
 		fit();
-	}
-	mesh(const mesh& cpy) : bbox(cpy.bbox),P(cpy.P),A(cpy.A),prim(new primitive[cpy.size]), mat(cpy.mat), size(cpy.size), lw(cpy.lw) {
-		memcpy(prim, cpy.prim, size * sizeof(primitive));
-	}
-	const mesh& operator=(const mesh& cpy) {
-		bbox = cpy.bbox, P = cpy.P, A = cpy.A, prim = new primitive[cpy.size], mat = cpy.mat, size = cpy.size, lw = cpy.lw;
-		memcpy(prim, cpy.prim, size * sizeof(primitive));
-		return *this;
-	}
-	~mesh() {
-		clean();
 	}
 	inline bool hit(const ray& r, hitrec& rec) const
 	{
 		if (size == 1)
 		{
-			bool hit = prim[0].hit(r, rec);
+			bool hit = prim->hit(r, rec);
 			if(hit)rec.mat = mat;
 			return hit;
 		}
@@ -44,7 +34,7 @@ public:
 		return matrix(P,A);
 	}
 	inline void set_trans(const matrix& _T) {
-		matrix dT(_T.P()-P,_T.A-A);
+		matrix dT(P-_T.P(),A-_T.A);
 		P = _T.P();
 		A = _T.A;
 		build_cache(dT);
@@ -60,17 +50,17 @@ public:
 		return lw * y;
 	}
 	inline vec3 rand_to(vec3 O) const {
-		if (size == 1) return prim[0].rand_to(O);
+		if (size == 1) return prim->rand_to(O);
 		uint id = raint(size - 1);
 		return prim[id].rand_to(O);
 	}
 	inline vec3 rand_from() const {
-		if (size == 1) return prim[0].rand_from();
+		if (size == 1) return prim->rand_from();
 		uint id = raint(size - 1);
 		return prim[id].rand_from();
 	}
-	inline uint get_mat()const {
-		return mat;
+	inline void free() {
+		delete[]prim;
 	}
 private:
 	inline void build_cache(const matrix& dT) {
@@ -85,13 +75,10 @@ private:
 			bbox.join(prim[i].get_box());
 		}
 	}
-	inline void clean() {
-		delete[]prim;
-	}
 	aabb bbox;
 	vec3 P, A;
 	primitive* prim;
-	uint mat;
+	material* mat;
 	uint size;
 	float lw;
 };
@@ -107,33 +94,6 @@ struct mesh_var {
 	mesh_var(const qmesh &m) :q(m), id(o_qua) {}
 	mesh_var(const tmesh &m) :t(m), id(o_tri) {}
 	mesh_var(const vmesh &m) :v(m), id(o_vox) {}
-	mesh_var(const mesh_var& cpy):id(cpy.id) {
-		switch (id) {
-		case o_sph: s = cpy.s; break;
-		case o_qua: q = cpy.q; break;
-		case o_tri: t = cpy.t; break;
-		case o_vox:	v = cpy.v; break;
-		case o_bla:
-		case o_bvh:
-		default:break;
-		}
-	}
-	~mesh_var() {
-		
-		//Destructor DOES matter here (each type holds a different pointer, thus correct delete[] method shall be called !)
-		switch (id) {
-		case o_sph: s.~mesh(); break;
-		case o_qua: q.~mesh(); break;
-		case o_tri: t.~mesh(); break;
-		case o_vox:	v.~mesh(); break;
-		case o_bla:
-		case o_bvh:
-		default:break;
-		}
-	}
-	inline uint get_mat()const {
-		return s.get_mat();
-	}
 	inline bool hit(const ray& r, hitrec& rec) const
 	{
 		if (!s.get_box().hit(r))return false;
@@ -204,6 +164,17 @@ struct mesh_var {
 		case o_bla:
 		case o_bvh:
 		default: return 0;
+		}
+	}
+	inline void free() {
+		switch (id) {
+		case o_sph: s.free(); break;
+		case o_qua: q.free(); break;
+		case o_tri: t.free(); break;
+		case o_vox:	v.free(); break;
+		case o_bla:
+		case o_bvh:
+		default:break;
 		}
 	}
 	union {

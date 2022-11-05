@@ -4,6 +4,8 @@
 #include "aabb.h"
 #include "onb.h"
 
+class material;
+
 enum obj_enum{
 	o_bla, o_sph, o_qua, o_tri, o_vox, o_bvh
 };

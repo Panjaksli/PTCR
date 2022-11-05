@@ -39,43 +39,35 @@ public:
 	}
 	//Declarations
 	template <typename T>
-	void add(const T& object, uint mat, bool is_light = 0);
+	void add(const T& object, sptr<material> mat, bool is_light = 0);
 	template <typename T>
-	void add(const vector<T>& object, uint mat, bool is_light = 0);
+	void add(const vector<T>& object, sptr<material> mat, bool is_light = 0);
 	void clear();
 	obj_id get_id(const ray& r, hitrec& rec) const;
 	void get_trans(const obj_id id, matrix& T) const;
 	void set_trans(const obj_id id, const matrix& T);
 	void fit();
-	void add_mat(const albedo& tex, const mat_enum type) {
-		add_mat(mat_var(tex, type));
-	}
-	void add_mat(const mat_var& mat) {
-		materials.emplace_back(mat);
-	}
 private:
 	template <typename T>
 	void add(const mesh<T>& object, bool is_light)
 	{
 		bbox.join(object.get_box());
-		objects.emplace_back(object);
-		if (is_light) lights.emplace_back(objects.size() - 1), lw = 1.f / lights.size();
+		objects.push_back(object);
+		if (is_light) lights.push_back(objects.size() - 1), lw = 1.f / lights.size();
 	}
 public:
 	aabb bbox;
 	vector<uint> lights;
 	vector<mesh_var> objects;
-	vector<mat_var> materials;
 	float lw;
 };
 template <typename T>
-void obj_list::add(const T& object, uint mat, bool is_light)
+void obj_list::add(const T& object, sptr<material> mat, bool is_light)
 {
 	add(mesh<T>(object, mat), is_light);
 }
 template <typename T>
-void obj_list::add(const vector<T>& object, uint mat, bool is_light)
+void obj_list::add(const vector<T>& object, sptr<material> mat, bool is_light)
 {
 	add(mesh<T>(object, mat), is_light);
 }
-

@@ -8,7 +8,7 @@ public:
 	quad(vec3 _Q, vec3 _U, vec3 _V, bool param) :Q(_Q), U(_U), V(_V), N(normal(U, V)) {}
 
 	inline aabb get_box()const {
-		return (aabb(Q, Q + U, Q + V) + aabb(Q + U + V, Q + U, Q + V)).padded();
+		return aabb(Q, Q + U, Q + V) + aabb(Q + U + V, Q + U, Q + V);
 	}
 
 	inline quad trans(const matrix& T) const {
@@ -24,7 +24,7 @@ public:
 		float u = dot(tV, pV) * iD;
 		float v = dot(r.D, qV) * iD;
 		float t = dot(V, qV) * iD;
-		if (within(u, 0.f, 1.f) && within(v, 0.f, 1.f) && inside(t, eps2, rec.t))
+		if (inside(t, eps2, rec.t) && within(u, 0.f, 1.f) && within(v, 0.f, 1.f))
 		{
 			bool face = D > 0;
 			rec.N = face ? N : -N;
@@ -40,14 +40,12 @@ public:
 	inline float pdf(const ray& r)const {
 		hitrec rec;
 		if (!hit(r, rec))return 0;
-		//Sp = S * cos(theta) / t*t; 
 		float S = N.w;
 		float NoL = absdot(N, r.D);
 		return rec.t * rec.t / (S * NoL);
 	}
 	inline vec3 rand_to(vec3 O) const {
 		float r[2]; rafl_tuple(r);
-		//pick point on quad using UV coordinates and make direction
 		vec3 P = Q + r[0] * U + r[1] * V;
 		vec3 L = norm(P - O);
 		return L;

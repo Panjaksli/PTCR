@@ -22,14 +22,15 @@ public:
 		float b = -dot(r.D, OC);
 		float c = dot(OC, OC) - Qr.w * Qr.w;
 		float d2 = b * b - c;
+		if (d2 < 0.f)return false;
 		float d = sqrtf(d2);
-		float t1 = b - d;
-		float t2 = b + d;
-		bool face = c > 0;
-		float t = face ? t1 : t2;// minp(t1, t2);
-		if (inside(t, eps2, rec.t)){
+		float t1 = b + d;
+		float t2 = b - d;
+		float t = minp(t1, t2);
+		if (inside(t, eps2, rec.t)) {
 			vec3 P = r.at(t);
 			vec3 N = (P - Qr) / Qr.w;
+			bool face = dot(r.D, N) < 0;
 			rec.N = face ? N : -N;
 			rec.P = P;
 			rec.t = t;
@@ -50,7 +51,6 @@ public:
 			return rec.t * rec.t / (S * NoL);
 		}
 		else {
-			//propability according to sampled cone
 			float theta = sqrtf(1.f - Qr.w * Qr.w / (Qr - r.O).len2());
 			return  1.f / (pi2 * (1.f - theta));
 		}
@@ -63,7 +63,6 @@ public:
 		vec3 dir = Qr - O;
 		float d2 = dir.len2();
 		float R2 = Qr.w * Qr.w;
-		//if inside, pick uniform coordinate
 		if (d2 <= R2)
 		{
 			vec3 N = norm(ra_sph());
@@ -71,7 +70,6 @@ public:
 			vec3 L = P - O;
 			return norm(L);
 		}
-		//else sample cone in direction of sphere
 		float r[2]; rafl_tuple(r);
 		float z = 1.f + r[1] * (sqrtf(1.f - R2 / d2) - 1.f);
 		float phi = pi2 * r[0];
