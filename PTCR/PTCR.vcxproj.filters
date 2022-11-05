@@ -18,7 +18,7 @@
     <ClCompile Include="PTCR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="misc\image.cpp">
+    <ClCompile Include="shaders\texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui_impl_sdl.cpp">
@@ -77,7 +77,7 @@
     <ClInclude Include="misc\event_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="misc\image.h">
+    <ClInclude Include="shaders\texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="misc\util.h">
@@ -128,9 +128,6 @@
     <ClInclude Include="shaders\shading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="shaders\texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stb\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -165,6 +162,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="math\vec3_SSE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders\albedo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
