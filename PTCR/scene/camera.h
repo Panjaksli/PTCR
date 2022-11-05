@@ -19,12 +19,10 @@ public:
 		py = SSY * tfov;
 		vec3 D(px, py, -1);
 		D = foc_t * (T * D);
-		float r[2]; rafl_tuple(r);
-		r[0] *= (0.01f / fstop);
-		r[1] *= (0.01f / fstop);
+		vec3 r = (0.01f / fstop) * sa_disk();
 		vec3 off = u * r[0] + v * r[1];
 		vec3 O(T.P());
-		return ray(O + off, D - off, 1);
+		return ray(O - off, D + off, 1);
 	}
 	inline void pixel(uint y, uint x, vec3 col)
 	{

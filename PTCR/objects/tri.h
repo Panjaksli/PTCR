@@ -1,6 +1,7 @@
 #pragma once
 #include "obj.h"
-//tri vec3(Q) vec3(U) vec3(V) vec3(N), 4*4*4 = 64B
+//tri vec3(Q) vec3(U) vec3(V) vec3(N), 4*4*4 = 64B)
+
 class tri {
 public:
 	tri() {}
@@ -8,7 +9,7 @@ public:
 	tri(vec3 _Q, vec3 _U, vec3 _V, bool param) :Q(_Q), U(_U), V(_V), N(normal(U, V)) {}
 
 	inline aabb get_box()const {
-		return aabb(Q, Q + U, Q + V) + aabb(Q + U + V, Q + U, Q + V);
+		return (aabb(Q, Q + U, Q + V) + aabb(Q + U + V, Q + U, Q + V)).padded();
 	}
 
 	inline tri trans(const matrix& T) const {
@@ -24,7 +25,7 @@ public:
 		float u = dot(tV, pV) * iD;
 		float v = dot(r.D, qV) * iD;
 		float t = dot(V, qV) * iD;
-		if (inside(t, eps2, rec.t) && within(u, 0.f, 1.f) && within(v, 0.f, 1.f - u))
+		if (within(u, 0.f, 1.f) && within(v, 0.f, 1.f) && inside(t, eps2, rec.t))
 		{
 			bool face = D > 0;
 			rec.N = face ? N : -N;
@@ -46,7 +47,7 @@ public:
 	}
 	inline vec3 rand_to(vec3 O) const {
 		float r[2]; rafl_tuple(r);
-		if(r[0] + r[1] > 1.f){
+		if (r[0] + r[1] > 1.f) {
 			r[0] = 1.f - r[0];
 			r[1] = 1.f - r[1];
 		}
