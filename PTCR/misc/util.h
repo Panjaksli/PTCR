@@ -13,7 +13,7 @@ inline float fsqrt(float x)
 	i = 0x1fbd5f5f + (i >> 1); //532316802 //0x1fbd5f5f
 	return *(float*)&i;
 }
-inline constexpr int copysign(int a, int b) {
+inline constexpr int copysigni(int a, int b) {
 	return b > 0 ? a : -a;
 }
 inline float signf(float u)
@@ -26,6 +26,7 @@ inline float fast_sin(float x)
 	float x2 = x * x;
 	float x3 = x2 * x;
 	return (x + x3 * (-1.6666656684e-1f + x2 * (8.3330251389e-3f + x2 * (-1.9807418727e-4f + x2 * 2.6019030676e-6f))));
+	
 }
 inline float fast_atan(float x)
 {
@@ -179,10 +180,19 @@ inline void rafl_tuple(float r12[2]) {
 	r12[0] = r[0];
 	r12[1] = r[1];
 }
+inline void rafl_tuple_sym(float r12[2]) {
+	__m128 r = 2.f * _mm_rafl_ps() - 1.f;
+	r12[0] = r[0];
+	r12[1] = r[1];
+}
 #else
 inline void rafl_tuple(float r12[2]) {
 	r12[0] = rafl();
 	r12[1] = rafl();
+}
+inline void rafl_tuple_sym(float r12[2]) {
+	r12[0] = 1.f - 2.f * rafl();
+	r12[1] = 1.f - 2.f * rafl();
 }
 #endif
 

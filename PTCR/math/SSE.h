@@ -26,10 +26,6 @@ inline __m128 _mm_rafl_ps(float min, float max) {
 	return min + (max - min) * _mm_rafl_ps();
 }
 
-inline void rafl_quad(float r12[4]) {
-	_mm_storeu_ps(r12, _mm_rafl_ps());
-}
-
 inline __m128 _mm_abs_ps(__m128 x) {
 	const __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
 	return _mm_andnot_ps(mask, x);
@@ -40,6 +36,11 @@ inline __m128 _mm_sign_ps(__m128 x, __m128 y) {
 	__m128 sign = _mm_and_ps(mask, y);
 	__m128 absval = _mm_andnot_ps(mask, x);
 	return _mm_or_ps(sign, absval);
+};
+inline __m128 _mm_flipsign_ps(__m128 x, __m128 y) {
+	const __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+	__m128 sign = _mm_and_ps(mask, y);
+	return _mm_xor_ps(sign, x);
 };
 inline __m128 _mm_sign_ps(__m128 x) {
 	return _mm_sign_ps(_mm_set1_ps(1.f), x);
@@ -52,14 +53,10 @@ inline __m128 _mm_fsqrt_ps(__m128 n) {
 	return _mm_castsi128_ps(i);
 }
 
-inline __m128 sqrt(__m128 n) {
-	__asm__("sqrtps %1, %0" : "+x" (n));
-	return n;
-}
-inline __m128 div(__m128 a, __m128 b) {
-	__asm__("divps %0, %1, %0" : "+x" (b) : "x" (a));
-	return b;
-}
+//inline __m128 sqrt(__m128 n) {
+//	//__asm__("sqrtps %1, %0" : "+x" (n));
+//	return _mm_sqrt_ps(n);
+//}
 
 /*
 https://geometrian.com/programming/tutorials/cross-product/index.php
