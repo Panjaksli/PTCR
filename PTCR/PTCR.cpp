@@ -17,11 +17,12 @@ void scn1(scene& scn) {
 	scn.world.clear();
 	albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 2e2);
 	albedo snow = albedo(texture("snow.png"), texture("snow_mer.png"), texture("iron_block_normal.png"), 2e3);
-	albedo pbrcol(vec3(0.5, 0.1, 0.1), vec3(), texture("gravel_normal.png"), 10);
+	albedo pbrcol(vec3(0.8, 0.8, 0.8), vec3(1,0,0.1), texture("gravel_normal.png"), 10);
 	albedo white(vec3(0.8, 0.8, 0.8));
-	scn.world.add_mat(iron, mat_ggx);
+	scn.world.add_mat(iron, mat_lam);
 	scn.world.add_mat(pbrcol, mat_ggx);
-	scn.world.add_mat(pbrcol, mat_ggx);
+	pbrcol.set_mer(vec3(0, 0, 0.1));
+	scn.world.add_mat(pbrcol,mat_ggx);
 	scn.world.add(quad(vec3(-100, eps, -100), vec3(100, eps, -100), vec3(-100, eps, 100)), 0);
 	scn.world.add(sphere(vec3(-1, 0.95f, -3, 1)), 1);
 	scn.world.add(sphere(vec3(1, 0.95f, -3, 1)), 2);
@@ -103,7 +104,7 @@ int main()
 	scale = SCALE;
 	bool& moving = scn.cam.moving;
 	bool tap_to_focus = 0;
-	scn3(scn);
+	scn1(scn);
 	printf("init done!!!\n");
 	matrix T;
 	vec3 TP = scn.sun_pos.P();
