@@ -3,6 +3,7 @@ void camera::update()
 {
 	fov = fminf(179, fmaxf(1, fov));
 	tfov = tan(0.5f * torad(fov));
+	foc_l = fov_to_m(fov);
 }
 
 void camera::set_P(vec3 P)
@@ -40,17 +41,17 @@ void camera::rotate(float alfa, float beta, float gamma)
 	moving = 1;
 }
 
-ray camera::focus_ray() const
+ray camera::focus_ray(float py, float px) const
 {
-	float px = w * 0.5f;
-	float py = h * 0.5f;
+	py *= h; px *= w;
 	float SSX = 2.f * (px + 0.5f) * iw - 1.f;
 	float SSY = 1.f - 2.f * (py + 0.5f) * ih;
 	px = SSX * tfov * asp;
 	py = SSY * tfov;
 	vec3 D(px, py, -1);
-	D = T * D;
-	return ray(T.P(), D, 1);
+	D = (T * D);
+	vec3 O(T.P());
+	return ray(O, D, 1);
 }
 
 void camera::resize(uint _w, uint _h, float scale)
@@ -62,4 +63,15 @@ void camera::resize(uint _w, uint _h, float scale)
 	asp = (float)w / h;
 	CCD.resize(w, h);
 	moving = 1;
+}
+
+void camera::setup(matrix _T, float _fov, float _fstop) {
+	T = _T;
+	fov = _fov;
+	fstop = _fstop;
+	update();
+}
+void camera::set_fov(float _fov) {
+	fov = _fov;
+	update();
 }

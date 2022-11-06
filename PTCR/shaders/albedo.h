@@ -43,6 +43,9 @@ public:
 	{
 		_nor.set_col(col);
 	}
+	inline float& get_rep() {
+		return rep;
+	}
 private:
 	texture _rgb, _mer, _nor;
 	float rep;

@@ -130,7 +130,8 @@ public:
 	inline vec3 sample_iterative(const ray& r, const hitrec& rec, int depth) const;
 	obj_id get_id(const ray& r, hitrec& rec) const;
 	obj_id get_id(float py, float px, matrix& T) const;
-	void focus_cam();
+	void cam_autofocus();
+	void cam_manufocus(float py = 0, float px = 0);
 	void set_trans(obj_id id, const matrix& T);
 	void render();
 	void screenshot() const;

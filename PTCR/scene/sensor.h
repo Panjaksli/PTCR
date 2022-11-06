@@ -9,11 +9,11 @@ public:
 
 	inline void add(uint col, uint row, const vec3& t) {
 		uint off = col * w + row;
-		data[off] += fixnan(vec3(t.x, t.y, t.z, 1));
+		data[off] += fixnan(vec3(t, 1));
 	}
 	inline void set(uint col, uint row, const vec3& t) {
 		uint off = col * w + row;
-		data[off] = fixnan(vec3(t.x, t.y, t.z, 1));
+		data[off] = fixnan(vec3(t, 1));
 	}
 	inline void clear(uint i) {
 		data[i] = vec3();

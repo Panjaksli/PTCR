@@ -106,14 +106,16 @@ namespace material {
 
 	inline void uni_li(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
+		vec3 mer = tex.mer(rec.u, rec.v);
 		mat.N = rec.N;
-		mat.emis = rgb;
+		mat.emis = mer.y * rgb;
 	}
 
 	inline void dir_li(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
+		vec3 mer = tex.mer(rec.u, rec.v);
 		mat.N = rec.N;
-		mat.emis = rec.face * rgb;
+		mat.emis = rec.face * mer.y * rgb;
 	}
 }
 class mat_var {

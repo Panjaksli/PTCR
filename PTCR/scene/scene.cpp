@@ -1,11 +1,21 @@
 #include <omp.h>
 #include "scene.h"
 
-void scene::focus_cam() {
-	if (cam.autofocus)
-	{
+void scene::cam_autofocus() {
+	if (cam.autofocus) {
 		ray r(cam.focus_ray());
-		cam.foc_t = 0.5f * (cam.foc_t + fminf(closest_t(r), 1000.f));
+		float new_t = closest_t(r);
+		if (new_t <= cam.foc_t)
+			cam.foc_t = 0.2f * cam.foc_t + 0.8f * fminf(new_t, 1e6f);
+		else
+			cam.foc_t = 0.8f * cam.foc_t + 0.2f * fminf(new_t, 1e6f);
+	}	
+}
+void scene::cam_manufocus(float py, float px) {
+	if (!cam.autofocus) {
+		ray r(cam.focus_ray(py * opt.res_scale * cam.ih, px * opt.res_scale * cam.iw));
+		cam.foc_t = fminf(closest_t(r),1e6);
+		cam.moving = 1;
 	}
 }
 obj_id scene::get_id(const ray& r, hitrec& rec) const
@@ -15,7 +25,7 @@ obj_id scene::get_id(const ray& r, hitrec& rec) const
 
 obj_id scene::get_id(float py, float px, matrix& T) const
 {
-	ray r(cam.raycast(py * opt.res_scale + 0.5, px * opt.res_scale + 0.5));
+	ray r(cam.focus_ray(py * opt.res_scale * cam.ih, px * opt.res_scale * cam.iw));
 	hitrec rec;
 	obj_id id = get_id(r, rec);
 	world.get_trans(id, T);
@@ -38,7 +48,7 @@ void scene::set_trans(obj_id id, const matrix& T) {
 
 void scene::render() {
 	float invs = 1.f / fmaxf(opt.samples, 1);
-	focus_cam();
+	cam_autofocus();
 	if (cam.moving)cam.CCD.t = 0.f;
 	if (world.lights.size() <= 0)
 		opt.li_sa = 0;
