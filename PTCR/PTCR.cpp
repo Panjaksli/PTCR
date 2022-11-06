@@ -184,7 +184,6 @@ int main()
 			if(ImGui::Checkbox("Tap to focus", &tap_to_focus))
 			{
 				if (tap_to_focus)scn.cam.autofocus = 0;
-				moving = 1;
 			}
 			if (ImGui::InputFloat("Foc dist", &scn.cam.foc_t, 0.001, 0.001))
 			{
