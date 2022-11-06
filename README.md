@@ -1,4 +1,5 @@
 # PTCR
+![20221106_125623](https://user-images.githubusercontent.com/82727531/200171228-0e95aa64-be6e-461d-ba64-f92cf38d16f4.png)
 ## Requirements
 CPU with **at least** SSE 4.1 support. <br>
 Release version is compiled with -march=haswell. <br>
