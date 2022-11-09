@@ -66,7 +66,7 @@ public:
 		//if inside, pick uniform coordinate
 		if (d2 <= R2)
 		{
-			vec3 N = norm(ra_sph());
+			vec3 N = sa_sph();
 			vec3 P = Qr + N * Qr.w;
 			vec3 L = P - O;
 			return norm(L);
@@ -75,15 +75,13 @@ public:
 		float r[2]; rafl_tuple(r);
 		float z = 1.f + r[1] * (sqrtf(1.f - R2 / d2) - 1.f);
 		float phi = pi2 * r[0];
-		float theta = sqrtf(1.f - z * z);
-		float x = fcos(phi) * theta;
-		float y = fsin(phi) * theta;
-		return onb(norm(dir)).local(vec3(x, y, z));
+		vec3 xy = sqrtf(1.f - z * z) * cossin(phi);
+		return onb(norm(dir)).world(xy+vec3(0,0,z));
 	}
 	inline vec3 rand_from() const {
-		vec3 R = norm(ra_sph());
+		vec3 R = sa_sph();
 		//vec3 P = Qr + R * Qr.w;
-		return onb(R).local(sa_cos());
+		return onb(R).world(sa_cos());
 	}
 private:
 	vec4 Qr;

@@ -7,19 +7,19 @@ public:
 
 	aabb(const vec3 p1, const vec3 p2) :pmin(min(p1, p2)), pmax(max(p1, p2)) {}
 	aabb(const vec3 p1, const vec3 p2, const vec3 p3) :pmin(min(p1, p2, p3)), pmax(max(p1, p2, p3)) {}
-	aabb(const aabb& box1, const aabb& box2) :pmin(min(box1.pmin, box2.pmin)), pmax(max(box1.pmax, box2.pmax)){}
-	inline aabb operator+(const aabb &box)const {
+	aabb(const aabb& box1, const aabb& box2) :pmin(min(box1.pmin, box2.pmin)), pmax(max(box1.pmax, box2.pmax)) {}
+	inline aabb operator+(const aabb& box)const {
 		aabb box1 = *this;
 		box1.join(box);
 		return box1;
 	}
 	inline void join(const aabb& box) {
-		if (eq0(pmin)&&eq0(pmax))
+		if (eq0(pmin) && eq0(pmax))
 		{
 			pmin = box.pmin;
 			pmax = box.pmax;
 		}
-		else 
+		else
 		{
 			pmin = (min(pmin, box.pmin)), pmax = (max(pmax, box.pmax));
 		}
@@ -39,10 +39,10 @@ public:
 		pmin.print();
 		pmax.print();
 	}
-/*: Alexander Majercik, Cyril Crassin, Peter Shirley, and Morgan McGuire, A Ray-Box Intersection Algorithm and Efficient Dynamic Voxel Rendering, Journal of Computer Graphics Techniques (JCGT), vol. 7, no. 3, 66-81, 2018
-Available online http://jcgt.org/published/0007/03/04/7
-*/
-	inline bool hit(const ray& r) const {
+	/*: Alexander Majercik, Cyril Crassin, Peter Shirley, and Morgan McGuire, A Ray-Box Intersection Algorithm and Efficient Dynamic Voxel Rendering, Journal of Computer Graphics Techniques (JCGT), vol. 7, no. 3, 66-81, 2018
+	Available online http://jcgt.org/published/0007/03/04/7
+	*/
+	__forceinline bool hit(const ray& r) const {
 		vec3 t1 = (pmin - r.O) * r.iD;
 		vec3 t2 = (pmax - r.O) * r.iD;
 		vec3 tmin = min(t1, t2);
@@ -51,7 +51,7 @@ Available online http://jcgt.org/published/0007/03/04/7
 		float maxt = min(tmax);
 		return mint <= maxt && maxt > 0;
 	}
-	inline bool hit(const ray& r,float min_t, float max_t) const {
+	inline bool hit(const ray& r, float min_t, float max_t) const {
 		vec3 t1 = (pmin - r.O) * r.iD;
 		vec3 t2 = (pmax - r.O) * r.iD;
 		vec3 tmin = min(t1, t2);

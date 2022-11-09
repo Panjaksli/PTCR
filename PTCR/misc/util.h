@@ -26,7 +26,7 @@ inline float fast_sin(float x)
 	float x2 = x * x;
 	float x3 = x2 * x;
 	return (x + x3 * (-1.6666656684e-1f + x2 * (8.3330251389e-3f + x2 * (-1.9807418727e-4f + x2 * 2.6019030676e-6f))));
-	
+
 }
 inline float fast_atan(float x)
 {
@@ -137,9 +137,9 @@ inline float mix(float x, float y, float t)
 
 inline float minp(float t1, float t2)
 {
-	if (t1 < eps)t1 = infp;
-	if (t2 < eps)t2 = infp;
-	return fmin(t1, t2);
+	if (t1 < eps2)t1 = infp;
+	if (t2 < eps2)t2 = infp;
+	return fminf(t1, t2);
 }
 
 inline float clamp(float x, float min, float max)
@@ -205,7 +205,7 @@ inline float rafl(float min, float max) { return min + (max - min) * rafl(); }
 inline float rafl(float max) { return max * rafl(); }
 inline int raint(int min, int max)
 {
-return rafl(min, max + 1);
+	return rafl(min, max + 1);
 }
 inline uint raint(uint max)
 {
@@ -237,8 +237,8 @@ struct rgba8888 {
 struct pbool {
 	pbool() :byte(0) {}
 	pbool(uchar _byte) :byte(_byte) {}
-	
-	inline operator bool() const{
+
+	inline operator bool() const {
 		return byte;
 	}
 	inline operator uchar()const {
@@ -261,7 +261,11 @@ inline uint pack_rgb(uchar r, uchar g, uchar b)
 	constexpr uchar a = 255;
 	return r + (g << 8) + (b << 16) + (a << 24);
 }
-
+inline uint pack_bgr(uchar r, uchar g, uchar b)
+{
+	constexpr uchar a = 255;
+	return b + (g << 8) + (r << 16) + (a << 24);
+}
 
 inline uint pack_rgb10(uint r, uint g, uint b)
 {

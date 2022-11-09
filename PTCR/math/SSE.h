@@ -61,7 +61,7 @@ inline __m128 _mm_fsqrt_ps(__m128 n) {
 /*
 https://geometrian.com/programming/tutorials/cross-product/index.php
 */
-inline __m128 _mm_cross_ps(__m128 const& u, __m128 const& v) {
+__forceinline __m128 _mm_cross_ps(__m128 const& u, __m128 const& v) {
 	__m128 tmp0 = _mm_shuffle_ps(u, u, _MM_SHUFFLE(3, 0, 2, 1));
 	__m128 tmp1 = _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 1, 0, 2));
 	__m128 tmp2 = _mm_shuffle_ps(u, u, _MM_SHUFFLE(3, 1, 0, 2));

@@ -26,7 +26,7 @@ public:
 	~mesh() {
 		clean();
 	}
-	inline bool hit(const ray& r, hitrec& rec) const
+	__forceinline bool hit(const ray& r, hitrec& rec) const
 	{
 		if (size == 1)
 		{
@@ -50,7 +50,7 @@ public:
 		build_cache(dT);
 	}
 	inline aabb get_box()const { return bbox; }
-	inline float pdf(const ray& r)const {
+	__forceinline float pdf(const ray& r)const {
 		if (size == 1) return prim[0].pdf(r);
 		float y = 0.f;
 		for (uint i = 0; i < size; i++)
@@ -59,12 +59,12 @@ public:
 		}
 		return lw * y;
 	}
-	inline vec3 rand_to(vec3 O) const {
+	__forceinline vec3 rand_to(vec3 O) const {
 		if (size == 1) return prim[0].rand_to(O);
 		uint id = raint(size - 1);
 		return prim[id].rand_to(O);
 	}
-	inline vec3 rand_from() const {
+	__forceinline vec3 rand_from() const {
 		if (size == 1) return prim[0].rand_from();
 		uint id = raint(size - 1);
 		return prim[id].rand_from();
@@ -134,7 +134,7 @@ struct mesh_var {
 	inline uint get_mat()const {
 		return s.get_mat();
 	}
-	inline bool hit(const ray& r, hitrec& rec) const
+	__forceinline bool hit(const ray& r, hitrec& rec) const
 	{
 		if (!s.get_box().hit(r))return false;
 		switch (id) {
@@ -172,7 +172,7 @@ struct mesh_var {
 	inline aabb get_box()const {
 		return s.get_box();
 	}
-	inline float pdf(const ray& r)const {
+	__forceinline float pdf(const ray& r)const {
 		if (!s.get_box().hit(r))return 0;
 		switch (id) {
 		case o_sph: return s.pdf(r);
@@ -184,7 +184,7 @@ struct mesh_var {
 		default: return 0;
 		}
 	}
-	inline vec3 rand_to(vec3 O) const {
+	__forceinline vec3 rand_to(vec3 O) const {
 		switch (id) {
 		case o_sph: return s.rand_to(O);
 		case o_qua: return q.rand_to(O);
@@ -195,7 +195,7 @@ struct mesh_var {
 		default: return 0;
 		}
 	}
-	inline vec3 rand_from() const {
+	__forceinline vec3 rand_from() const {
 		switch (id) {
 		case o_sph: return s.rand_from();
 		case o_qua: return q.rand_from();

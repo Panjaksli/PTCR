@@ -115,7 +115,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\imgui;$(ProjectDir)\scene;$(ProjectDir)\math;$(ProjectDir);$(ProjectDir)\obj;$(ProjectDir)\misc;$(ProjectDir)\sdl2\include;$(ProjectDir)\shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\imgui;$(ProjectDir)\scene;$(ProjectDir)\math;$(ProjectDir);$(ProjectDir)\objects;$(ProjectDir)\misc;$(ProjectDir)\sdl2\include;$(ProjectDir)\shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -178,6 +178,7 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="misc\event_handler.cpp" />
+    <ClCompile Include="scene\scenes.cpp" />
     <ClCompile Include="shaders\texture.cpp" />
     <ClCompile Include="objects\obj_list.cpp" />
     <ClCompile Include="PTCR.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="math\vec3_SSE.h" />
     <ClInclude Include="misc\defines.h" />
     <ClInclude Include="misc\event_handler.h" />
+    <ClInclude Include="scene\scenes.h" />
     <ClInclude Include="shaders\albedo.h" />
     <ClInclude Include="shaders\texture.h" />
     <ClInclude Include="misc\util.h" />

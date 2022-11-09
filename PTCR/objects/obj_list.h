@@ -10,14 +10,14 @@ public:
 		return objects[id.id].get_box();
 	}
 
-	inline bool hit(const ray& r, hitrec& rec) const {
+	__forceinline bool hit(const ray& r, hitrec& rec) const {
 		if (!bbox.hit(r)) return false;
 		bool hit = false;
 		for (auto& obj : objects)hit |= obj.hit(r, rec);
 		return hit;
 	}
 
-	inline float pdf(const ray& r)const {
+	__forceinline inline float pdf(const ray& r)const {
 		if (!bbox.hit(r))return 0;
 		if (lights.size() == 1)return objects[lights[0]].pdf(r);
 		float y = 0.f;
@@ -25,13 +25,13 @@ public:
 			y += objects[light].pdf(r);
 		return lw * y;
 	}
-	inline vec3 rand_to(vec3 O) const {
+	__forceinline inline vec3 rand_to(vec3 O) const {
 		if (lights.size() == 1)return objects[lights[0]].rand_to(O);
 		uint id = raint(lights.size() - 1);
 		const uint light = lights[id];
 		return objects[light].rand_to(O);
 	}
-	inline vec3 rand_from() const {
+	__forceinline inline vec3 rand_from() const {
 		if (lights.size() == 1)return objects[lights[0]].rand_from();
 		uint id = raint(lights.size() - 1);
 		uint light = lights[id];

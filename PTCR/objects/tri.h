@@ -61,8 +61,8 @@ public:
 			r[0] = 1.f - r[0];
 			r[1] = 1.f - r[1];
 		}
-		vec3 P = Q + r[0] * U + r[1] * V;
-		vec3 L = onb(N).local(sa_cos());
+		//vec3 P = Q + r[0] * U + r[1] * V;
+		vec3 L = onb(N).world(sa_cos());
 		return L;
 	}
 	vec3 Q, U, V, N;

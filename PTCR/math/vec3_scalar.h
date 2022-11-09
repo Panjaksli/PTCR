@@ -75,9 +75,7 @@ inline vec3 operator+(vec3 u, vec3 v) { return u += v; }
 inline vec3 operator-(vec3 u, vec3 v) { return u -= v; }
 inline vec3 operator*(vec3 u, vec3 v) { return u *= v; }
 inline vec3 operator/(vec3 u, vec3 v) { return u /= v; }
-inline vec3 fma(vec3 a, vec3 b, vec3 c) {
-	return a * b + c;
-}
+
 inline float operator&(vec3 u, vec3 v) {
 	return u.x * v.x + u.y * v.y + u.z * v.z;
 }
@@ -99,7 +97,7 @@ inline vec3 fabs(vec3 u)
 }
 inline vec3 copysign(vec3 u, vec3 v)
 {
-	return vec3(copysignf(u.x,v.x), copysignf(u.y, v.y), copysignf(u.z, v.z), copysignf(u.w, v.w));
+	return vec3(copysignf(u.x, v.x), copysignf(u.y, v.y), copysignf(u.z, v.z), copysignf(u.w, v.w));
 }
 inline vec3 sign(vec3 u) {
 	return vec3(signf(u.x), signf(u.y), signf(u.z), signf(u.w));
@@ -113,15 +111,14 @@ inline vec3 floor(vec3 u) {
 inline vec3 ceil(vec3 u) {
 	return vec3(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w));
 }
-inline vec3 fract(vec3 u) {
-	return u - floor(u);
-}
+
 inline vec3 cross(vec3 u, vec3 v) { return u % v; }
 inline float dot(vec3 u, vec3 v) { return u & v; }
 inline float dot4(vec3 u, vec3 v) { return u.x * v.x + u.y * v.y + u.z * v.z + u.w * v.w; }
 inline float posdot(vec3 u, vec3 v) { return fmaxf(0.f, u & v); }
 inline float absdot(vec3 u, vec3 v) { return fabsf(u & v); }
 inline float dotabs(vec3 u, vec3 v) { return (abs(u) & abs(v)); }
+
 inline vec3 rotl3(vec3 u) {
 	float t = u.x;
 	u.x = u.y;
@@ -178,10 +175,7 @@ inline vec3 vec_eq(vec3 u, vec3 v) {
 inline vec3 vec_neq(vec3 u, vec3 v) {
 	return vec3(u.x != v.x, u.y != v.y, u.z != v.z, u.w != v.w);
 }
-inline vec3 vec_eq_tol(vec3 u, vec3 v) {
-	vec3 w = fabs(u - v);
-	return vec_lt(w, eps);
-}
+
 inline vec3 vec_near0(vec3 u)
 {
 	u = fabs(u);
@@ -193,7 +187,7 @@ inline vec3 vec_not0(vec3 u) {
 }
 inline bool lt(vec3 u, vec3 v)
 {
-	return u.x < v.x && u.y < v.y && u.z < v.z;
+	return u.x < v.x&& u.y < v.y&& u.z < v.z;
 }
 inline bool gt(vec3 u, vec3 v)
 {
@@ -229,14 +223,6 @@ inline bool near0(vec3 u)
 inline bool not0(vec3 u) {
 	return !near0(u);
 }
-inline float sum(vec3 u)
-{
-	return (u.x + u.y + u.z);
-}
-inline float avg(vec3 u)
-{
-	return (1 / 3.f) * sum(u);
-}
 
 inline float min(vec3 u)
 {
@@ -254,71 +240,8 @@ inline vec3 max(vec3 u, vec3 v)
 {
 	return vec3(fmaxf(u.x, v.x), fmaxf(u.y, v.y), fmaxf(u.z, v.z), fmaxf(u.w, v.w));
 }
-inline vec3 min(vec3 u, vec3 v, vec3 w)
-{
-	return min(u, min(v, w));
-}
-inline vec3 max(vec3 u, vec3 v, vec3 w)
-{
-	return max(u, max(v, w));
-}
-inline vec3 mix(vec3 x, vec3 y, vec3 t)
-{
-	return (1.f - t) * x + t * y;
-}
-inline vec3 clamp(vec3 u, vec3 lo, vec3 hi)
-{
-	return max(min(u, hi), lo);
-}
-inline vec3 fixnan(vec3 u)
-{
-	return max(0.f, u);
-}
-
-inline vec3 saturate(vec3 u)
-{
-	return clamp(u, 0.f, 1.f);
-}
-
-inline vec3 reflect(const vec3 v, const vec3 n)
-{
-	return v - 2.f * dot(v, n) * n;
-}
-inline vec3 normal(const vec3 u, const vec3 v) {
-	vec3 uv = cross(u, v);
-	vec3 N = norm(uv);
-	N.w = uv.len();
-	return N;
-}
-
-inline vec3 fast_sin(vec3 x)
-{
-	vec3 x2 = x * x;
-	return x * (1.f + x2 * (-1.6666656684e-1f + x2 * (8.3330251389e-3f + x2 * (-1.9807418727e-4f + x2 * 2.6019030676e-6f))));
-}
-
-inline vec3 sin(vec3 x)
-{
-	x = min(x, pi - x);
-	x = max(x, -pi - x);
-	return fast_sin(x);
-}
-inline vec3 cos(vec3 x)
-{
-	x = fabs(x - pi) - hpi;
-	return fast_sin(x);
-}
-inline vec3 cossin(float x) {
-	float x1 = fabsf(x - pi) - hpi;
-	x = fminf(x, pi - x);
-	x = fmaxf(x, -pi - x);
-	return fast_sin(vec3(x1, x));
-}
-inline vec3 sincos(float x) {
-	float x1 = fabsf(x - pi) - hpi;
-	x = fminf(x, pi - x);
-	x = fmaxf(x, -pi - x);
-	return fast_sin(vec3(x, x1));
+inline vec3 rapvec() {
+	return vec3(rafl(), rafl(), rafl());
 }
 inline vec3 ravec() {
 	return 2.f * vec3(rafl(), rafl(), rafl()) - 1.f;
@@ -326,88 +249,3 @@ inline vec3 ravec() {
 inline vec3 ravec(float min, float max) {
 	return vec3(rafl(min, max), rafl(min, max), rafl(min, max));
 }
-inline vec3 ra_disk()
-{
-	vec3 u(rafl(), rafl());
-	while (u.len2() >= 1.f)
-		u = vec3(rafl(), rafl());
-	return u;
-}
-inline vec3 ra_sph()
-{
-	vec3 u(ravec());
-	while (u.len2() >= 1.f)
-		u = ravec();
-	return u;
-}
-inline vec3 ra_hem(vec3 v)
-{
-	vec3 u = ra_sph();
-	if (dot(u, v) > 0)
-		return u;
-	else
-		return -u;
-}
-
-inline float luminance(vec3 rgb)
-{
-	return (0.2126f * rgb.x + 0.7152f * rgb.y + 0.0722f * rgb.z);
-}
-inline float sum3(vec3 rgb)
-{
-	return (rgb.x + rgb.y + rgb.z) * (1.f / 3.f);
-}
-inline vec3 unrgb(const uint& rgb) {
-	vec3 v;
-	v.x = rgb & 0x000000ff;
-	v.y = (rgb >> 8) & 0x000000ff;
-	v.z = (rgb >> 16) & 0x000000ff;
-	v.w = (rgb >> 24) & 0x000000ff;
-	return v * (1.f / 255.f);
-}
-inline void rgb(vec3 col, uint& rgb)
-{
-	col /= col.w;
-#if GAMMA2
-	col = sqrt(col);
-#endif
-	col = saturate(col);
-	col *= 255.f;
-	rgb = pack_rgb(col.x, col.y, col.z);
-}
-
-inline void rgb_avg(vec3 col, uint& rgb)
-{
-	col /= col.w;
-#if GAMMA2
-	col = sqrt(col);
-#endif
-	col = saturate(col);
-	vec3 pre = unrgb(rgb);
-	col = 0.5f * (col + pre);
-	col *= 255.f;
-
-	rgb = pack_rgb(col.x, col.y, col.z);
-}
-
-inline vec3 med9(vec3* x) {
-	auto cmp_lum = [](const vec3& a, const vec3& b) {
-		return luminance(a) < luminance(b);
-	};
-	std::nth_element(x, x + 4, x + 9, cmp_lum);
-	return x[4];
-}
-inline vec3 avg9(vec3* x) {
-	vec3 sum;
-	for (int i = 0; i < 9; i++)
-		sum += x[i];
-	return sum * (1.f / 9.f);
-}
-inline vec3 med(vec3* x, const int n) {
-	auto cmp_lum = [](const vec3& a, const vec3& b) {
-		return luminance(a) < luminance(b);
-	};
-	std::nth_element(x, x + n / 2, x + n, cmp_lum);
-	return x[n / 2];
-}
-using vec4 = vec3;
