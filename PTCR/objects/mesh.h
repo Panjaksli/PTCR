@@ -119,7 +119,6 @@ struct mesh_var {
 		}
 	}
 	~mesh_var() {
-		
 		//Destructor DOES matter here (each type holds a different pointer, thus correct delete[] method shall be called !)
 		switch (id) {
 		case o_sph: s.~mesh(); break;

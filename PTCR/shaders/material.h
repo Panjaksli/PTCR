@@ -18,29 +18,43 @@ public:
 enum mat_enum {
 	mat_mix, mat_ggx, mat_vnd, mat_uli, mat_dli
 };
+extern bool dbg_mer;
 namespace material {
 
 	__forceinline void mix(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
-		//simple mix of lambertian and mirror reflection + emission
+		//simple mix of lambertian and mirror reflection/transmission + emission
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 mer = tex.mer(rec.u, rec.v);
 		vec3 nor = tex.nor(rec.u, rec.v);
+		float a = mer.z * mer.z;
+		float ir = tex.ir();
+		ir = rec.face ? 1.f / ir : ir;
 		vec3 N = normal_map(rec.N, nor);
-		if (rafl() < mer.x) {
-			vec3 L = reflect(r.D, N);
-			L = norm(mix(L, sa_hem(L), mer.z * mer.z));
-			mat.L = L;
-			mat.scat = rgb;
+		onb n(N);
+		vec3 H = n.world(sa_ggx(a));
+		float HoV = absdot(H, -r.D);
+		float Fr = fres_refl(HoV, ir);
+		bool metal = rafl() < mer.x;
+		bool opaque = rafl() < rgb.w && rec.face;
+		bool mirror = ir * sqrtf(1.f - HoV * HoV) > 1.f || Fr > rafl();
+		if ((opaque && metal) || mirror) {
+			mat.P = rec.P + rec.N * eps;
+			mat.L = reflect(r.D, H);
 			mat.sd = 1;
 		}
-		else {
-			mat.L = onb(N).world(sa_cos());
-			mat.scat = rgb;
-			mat.scat = rgb;
+		else if (!opaque) {
+			mat.P = rec.P - rec.N * eps;
+			mat.L = refract(r.D, H, HoV, ir);
+			mat.sd = 1;
+		}
+		else
+		{
+			mat.L = n.world(sa_cos());
+			mat.P = rec.P + rec.N * eps;
 			mat.sd = 2;
 		}
 		mat.N = N;
-		mat.P = rec.P + rec.N * eps;
+		mat.scat = rgb;
 		mat.emis = mer.y * rgb;
 		mat.sd *= not0(mat.scat);
 	}
@@ -48,79 +62,67 @@ namespace material {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 mer = tex.mer(rec.u, rec.v);
 		vec3 nor = tex.nor(rec.u, rec.v);
-		float mu = mer.x;
-		float em = mer.y;
-		float ro = mer.z;
-		float a = ro * ro;
+		float a = mer.z * mer.z;
+		vec3 F0 = mix(0.04f, vec3(rgb, 1), mer.x);
 		vec3 N = normal_map(rec.N, nor);
 		onb n = onb(N);
-		vec3 V = -r.D;
-		//it's beneficial to stay in world space performance wise
-		vec3 H = n.world(sa_ggx(a));
-		vec3 L = reflect(r.D, H);
-		float NoV = dot(N, V);
-		float NoL = dot(N, L);
-		float NoH = dot(N, H);
-		float HoL = dot(H, L);
-		vec3 F = mix(0.04f, rgb, mu);
-		bool correct = NoV > 0 && HoL > 0 && NoL > 0 && NoH > 0;
-		if (correct) F = FRES(HoL, F);
-		float sd = max(F);
-		bool spec = rafl() < sd;
-		if (spec && correct) {
+		vec3 V = n.local(-r.D);
+		vec3 H = sa_ggx(a);
+		vec3 L = reflect(-V, H);
+		float NoV = V.z;
+		float NoL = L.z;
+		float NoH = H.z;
+		float HoV = dot(H, V);
+		if (HoV < 0 || NoV < 0 || NoL < 0 || NoH < 0) return;
+		vec3 F = fres_spec(HoV, F0);
+		bool spec = rafl() < F.w;
+		if (spec) {
 			float G = GGX(NoL, NoV, a);
-			float W = HoL / (NoV * NoH);
-			mat.scat = F * (G * W) / sd;
-			mat.L = L;
+			float W = HoV / (NoV * NoH);
+			mat.scat = F * G * W / F.w;
+			mat.L = n.world(L);
 			mat.sd = 1;
 		}
 		else {
-			mat.scat = ((1.f - F) * (1.f - mu)) * rgb / (1.f - sd);
+			mat.scat = (1-mer.x)*(1.f - F) * rgb / (1.f - F.w);
 			mat.L = n.world(sa_cos());
 			mat.sd = 2;
 		}
 		mat.N = N;
 		mat.P = rec.P + rec.N * eps;
-		mat.emis = rgb * em;
+		mat.emis = rgb * mer.y;
 		mat.sd *= not0(mat.scat);
 	}
 	__forceinline void vndf(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 mer = tex.mer(rec.u, rec.v);
 		vec3 nor = tex.nor(rec.u, rec.v);
-		float mu = mer.x;
-		float em = mer.y;
-		float ro = mer.z;
-		float a = ro * ro;
+		float a = mer.z * mer.z;
+		vec3 F0 = mix(0.04f, vec3(rgb, 1), mer.x);
 		vec3 N = normal_map(rec.N, nor);
-		//todo : if NoV < 0 shouldnt be no light visible ???
 		onb n = onb(N);
 		vec3 V = n.local(-r.D);
-		//it's beneficial to stay in local space performance wise
-		//this sampling strategy is supposedly better, but performance is WAYY worse than GGX, and fireflies are still occuring the same amount.
 		vec3 H = sa_vndf(V, a);
 		vec3 L = reflect(-V, H);
 		float NoV = V.z;
 		float NoL = L.z;
-		float HoL = dot(H, L);
-		vec3 F = mix(0.04f, rgb, mu);
-		bool correct = HoL > 0 && NoV > 0 && NoL > 0;
-		if (correct) F = FRES(HoL, F);
-		float sd = max(F);
-		bool spec = rafl() < sd;
-		if (spec && correct) {
-			mat.scat = F * VNDF_GGX(NoL, NoV, a) / sd;
+		float HoV = dot(H, V);
+		if (HoV < 0 || NoV < 0 || NoL < 0) return;
+		vec3 F = fres_spec(HoV, F0);
+		bool spec = rafl() < F.w;
+		if (spec) {
+			mat.scat = F * VNDF_GGX(NoL, NoV, a) / F.w;
 			mat.L = n.world(L);
 			mat.sd = 1;
 		}
 		else {
-			mat.scat = ((1.f - F) * (1.f - mu)) * rgb / (1 - sd);
+			mat.scat = (1.f- F) * (1.f - mer.x) * rgb / (1.f - F.w);
 			mat.L = n.world(sa_cos());
 			mat.sd = 2;
 		}
 		mat.N = N;
 		mat.P = rec.P + rec.N * eps;
-		mat.emis = rgb * em;
+		mat.emis = rgb * mer.y;
 		mat.sd *= not0(mat.scat);
 	}
 

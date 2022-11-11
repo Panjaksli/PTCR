@@ -1,19 +1,22 @@
 #include "scenes.h"
 void scn1(scene& scn) {
 	scn.world.clear();
-	albedo iron = albedo(texture("iron_block.png"),0, texture("iron_block_normal.png"), 2e2);
+	albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 2e2);
 	albedo snow = albedo(texture("snow.png"), texture("snow_mer.png"), texture("snow_normal.png"), 2e3);
-	albedo pbrcol(vec3(0.8, 0.4, 0.0), vec3(1, 0, 0.1), texture("gravel_normal.png"), 10);
-	albedo pbrcol2(vec3(0.0, 0.8, 0.8), vec3(1, 0, 0.1), texture("gravel_normal.png"), 10);
-	albedo white(vec3(0.8, 0.8, 0.8),vec3(0,10,0));
-	scn.world.add_mat(snow, mat_ggx);
+	albedo pbrcol(vec3(0.5), vec3(0.5, 0, 0));
+	albedo pbrcol2(vec3(0.8, 0.0, 0.0), vec3(1, 0, 0.1));
+	albedo trans(vec3(0,0.5,0,1), vec3(1, 0, 0), vec3(0.5, 0.5, 1), 1, 1.3);
+	scn.world.add_mat(iron, mat_ggx);
 	scn.world.add_mat(pbrcol, mat_ggx);
 	scn.world.add_mat(pbrcol2, mat_ggx);
+	scn.world.add_mat(trans, mat_ggx);
 	scn.world.add(quad(vec3(-100, eps, -100), vec3(100, eps, -100), vec3(-100, eps, 100)), 0);
-	scn.world.add(sphere(vec3(-1, 0.95f, -3, 1)), 1);
-	scn.world.add(sphere(vec3(1, 0.95f, -3, 1)), 2);
+	/*scn.world.add(sphere(vec3(-1, 0.95f, -3, 1)), 1);
+	scn.world.add(sphere(vec3(1, 0.95f, -3, 1)), 2);*/
+	scn.world.add(voxel(vec3(0, 1.001, -3, 1)), 3,0);
+	scn.world.add(sphere(vec3(0, 1.001, -3, 0.7)), 2);
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
-	scn.cam.setup(matrix(vec3(0, 1, 0), vec3(0, 0, 0)), 70, 1);
+	scn.cam.setup(matrix(vec3(0, 1, 0), vec3(0, 0, 0)), 70, 64);
 }
 void scn2(scene& scn) {
 	scn.world.clear();

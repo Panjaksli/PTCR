@@ -13,7 +13,7 @@
 #if DEBUG
 bool use_normal_maps = 1;
 #endif
-
+bool dbg_mer = 1;
 int main()
 {
 	uint width = WIDTH, height = HEIGHT;
@@ -163,6 +163,7 @@ int main()
 #if DEBUG
 
 			moving |= ImGui::Checkbox("Debug Aten", &scn.opt.dbg_at); ImGui::SameLine();
+			moving |= ImGui::Checkbox("Debug mer", &dbg_mer); 
 			moving |= ImGui::Checkbox("Debug N", &scn.opt.dbg_n);
 			moving |= ImGui::Checkbox("Debug UV", &scn.opt.dbg_uv);	ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug t", &scn.opt.dbg_t);
@@ -189,11 +190,11 @@ int main()
 				albedo& alb = scn.world.materials[scn.world.objects[id.id].get_mat()].tex;
 				int type = (int)scn.world.materials[scn.world.objects[id.id].get_mat()].type;
 				vec3 col = alb.get_rgb(), mer = alb.get_mer();
-				float& rep = alb.get_rep();
 				moving |= ImGui::SliderInt("Mat", &type, 0, 4);
-				moving |= ImGui::InputFloat("Rep", &rep, 1, 10);
+				moving |= ImGui::InputFloat("Rep", &alb.get_rep(), 1, 10);
 				moving |= ImGui::ColorEdit4("Col", col._xyz, ImGuiColorEditFlags_Float);
 				moving |= ImGui::ColorEdit3("Mer", mer._xyz, ImGuiColorEditFlags_Float);
+				moving |= ImGui::DragFloat("Ir", &alb.get_ir(),0.01f, 1.f, 4.f);
 				scn.world.materials[scn.world.objects[id.id].get_mat()].type = (mat_enum)type;
 				alb.set_rgb(col);
 				alb.set_mer(mer);

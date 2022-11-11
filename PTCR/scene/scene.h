@@ -17,7 +17,7 @@ struct options {
 	bool dbg_n = 0;
 	bool dbg_uv = 0;
 	bool dbg_t = 0;
-	bool recur = 0;
+	bool recur = 1;
 	bool p_mode = 0;
 };
 

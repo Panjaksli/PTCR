@@ -11,5 +11,4 @@ public:
 		return O + t * D;
 	}
 	vec3 O, D, iD;
-
 };

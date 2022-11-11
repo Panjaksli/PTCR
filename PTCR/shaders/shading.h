@@ -34,12 +34,26 @@ inline float VNDF_GGX(float NoL, float NoV, float a)
 	float d3 = sqrtf(a2 + (1.f + a2) * NoV * NoV) + NoV;
 	return NoL * d3 / (d1 + d2);
 }
-inline float FRES(float NoV, float F0)
+inline float fres_spec(float NoV, float F0)
 {
-	return F0 + (1.0 - F0) * pow5(1.0f - NoV);
+	return F0 + (1.0f - F0) * pow5(1.0f - NoV);
 }
 
-inline vec3 FRES(float NoV, vec3 F0)
+inline vec3 fres_spec(float NoV, vec3 F0)
 {
-	return F0 + (1.0 - F0) * pow5(1.0f - NoV);
+	return F0 + (1.0f - F0) * pow5(1.0f - NoV);
+}
+
+inline vec3 fres_blend(vec3 kd, vec3 ks, float NoL, float NoV) {
+	kd = (ipi * 28.f / 23.f) * kd * (1.f - ks);
+	kd *= 1.f - pow5(1.f - 0.5f * NoL);
+	kd *= 1.f - pow5(1.f - 0.5f * NoV);
+	return kd;
+}
+
+
+inline float fres_refl(float NoV, float ir) {
+	float r0 = (1.f - ir) / (1.f + ir);
+	r0 = r0 * r0;
+	return r0 + (1.f - r0) * pow5(1.f - NoV);
 }

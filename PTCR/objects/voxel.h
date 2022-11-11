@@ -30,7 +30,7 @@ public:
 		{
 			vec3 P = r.at(t);
 			vec3 W = (P - Qa) / Qa.w;
-			vec3 N = toint(1.000001f * W);
+			vec3 N = norm(toint(1.000001f * W));
 			vec3 UV = 0.5f * (1.f + W - N);
 			rec.N = face ? N : -N;
 			rec.P = r.at(t);
@@ -67,18 +67,18 @@ public:
 #if 1
 			vec3 r = ravec();
 			vec3 W = r / max(fabs(r));
-			vec3 N = toint(1.00001f * W);
+			vec3 N = norm(toint(1.00001f * W));
 			bool dir = rafl() < 0.5f;
 			for (int i = 0; i < 3; i++) {
 				vec3 P = Qa + Qa.w * W;
-				vec3 L = P - O;
+				vec3 L = norm(P - O);
 				if (inside || dot(L, N) < 0)
-					return norm(L);
+					return L;
 				else {
 					vec3 P = Qa - Qa.w * W;
-					vec3 L = P - O;
+					vec3 L = norm(P - O);
 					if (dot(L, N) > 0)
-						return norm(L);
+						return L;
 				}
 				if (dir)
 				{
