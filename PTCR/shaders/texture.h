@@ -3,7 +3,7 @@
 #include <iostream>
 #include "vec3.h"
 void save_png(void* data, uint w, uint h);
-void save_hdr(vector<vec3>& data, uint w, uint h);
+void save_hdr(vector<vec3>& data, uint w, uint h, int spp = 0);
 #pragma pack(push,2)
 class texture {
 public:

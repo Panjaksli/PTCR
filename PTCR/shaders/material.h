@@ -16,9 +16,9 @@ public:
 };
 
 enum mat_enum {
-	mat_mix, mat_ggx, mat_vnd, mat_uli, mat_dli
+	mat_mix, mat_ggx, mat_vnd, mat_lig
 };
-extern bool dbg_mer;
+
 namespace material {
 
 	__forceinline void mix(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
@@ -31,20 +31,32 @@ namespace material {
 		ir = rec.face ? 1.f / ir : ir;
 		vec3 N = normal_map(rec.N, nor);
 		onb n(N);
+		//100% lambertian (reduced variance, since no rough reflections are allowed)
+		if (mer.x <= eps && mer.z >= 1.f - eps && rgb.w >= 1.f - eps) {
+			mat.L = n.world(sa_cos());
+			mat.P = rec.P + rec.N * eps;
+			mat.sd = 2;
+			mat.N = N;
+			mat.scat = rgb;
+			mat.emis = mer.y * rgb;
+			mat.sd *= not0(mat.scat);
+			return;
+		}
 		vec3 H = n.world(sa_ggx(a));
 		float HoV = absdot(H, -r.D);
+		if (HoV < 0) return;
 		float Fr = fres_refl(HoV, ir);
 		bool metal = rafl() < mer.x;
-		bool opaque = rafl() < rgb.w && rec.face;
+		bool opaque = rafl() < rgb.w;
 		bool mirror = ir * sqrtf(1.f - HoV * HoV) > 1.f || Fr > rafl();
 		if ((opaque && metal) || mirror) {
 			mat.P = rec.P + rec.N * eps;
 			mat.L = reflect(r.D, H);
 			mat.sd = 1;
 		}
-		else if (!opaque) {
+		else if (!opaque && !mirror) {
 			mat.P = rec.P - rec.N * eps;
-			mat.L = refract(r.D, H, HoV, ir);
+			mat.L = refract(r.D, H, ir);
 			mat.sd = 1;
 		}
 		else
@@ -67,13 +79,14 @@ namespace material {
 		vec3 N = normal_map(rec.N, nor);
 		onb n = onb(N);
 		vec3 V = n.local(-r.D);
+		float NoV = V.z;
+		if (NoV < 0) return;
 		vec3 H = sa_ggx(a);
 		vec3 L = reflect(-V, H);
-		float NoV = V.z;
 		float NoL = L.z;
 		float NoH = H.z;
 		float HoV = dot(H, V);
-		if (HoV < 0 || NoV < 0 || NoL < 0 || NoH < 0) return;
+		if (HoV < 0 || NoL < 0 || NoH < 0) return;
 		vec3 F = fres_spec(HoV, F0);
 		bool spec = rafl() < F.w;
 		if (spec) {
@@ -84,7 +97,7 @@ namespace material {
 			mat.sd = 1;
 		}
 		else {
-			mat.scat = (1-mer.x)*(1.f - F) * rgb / (1.f - F.w);
+			mat.scat = (1.f - mer.x) * (1.f - F) * rgb / (1.f - F.w);
 			mat.L = n.world(sa_cos());
 			mat.sd = 2;
 		}
@@ -102,12 +115,13 @@ namespace material {
 		vec3 N = normal_map(rec.N, nor);
 		onb n = onb(N);
 		vec3 V = n.local(-r.D);
+		float NoV = V.z;
+		if (NoV < 0) return;
 		vec3 H = sa_vndf(V, a);
 		vec3 L = reflect(-V, H);
-		float NoV = V.z;
 		float NoL = L.z;
 		float HoV = dot(H, V);
-		if (HoV < 0 || NoV < 0 || NoL < 0) return;
+		if (HoV < 0 || NoL < 0) return;
 		vec3 F = fres_spec(HoV, F0);
 		bool spec = rafl() < F.w;
 		if (spec) {
@@ -116,7 +130,7 @@ namespace material {
 			mat.sd = 1;
 		}
 		else {
-			mat.scat = (1.f- F) * (1.f - mer.x) * rgb / (1.f - F.w);
+			mat.scat = (1.f - F) * (1.f - mer.x) * rgb / (1.f - F.w);
 			mat.L = n.world(sa_cos());
 			mat.sd = 2;
 		}
@@ -126,16 +140,10 @@ namespace material {
 		mat.sd *= not0(mat.scat);
 	}
 
-	__forceinline void uni_li(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
+	__forceinline void light(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 mer = tex.mer(rec.u, rec.v);
 		mat.emis = mer.y * rgb;
-	}
-
-	__forceinline void dir_li(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
-		vec3 rgb = tex.rgb(rec.u, rec.v);
-		vec3 mer = tex.mer(rec.u, rec.v);
-		mat.emis = rec.face * mer.y * rgb;
 	}
 }
 class mat_var {
@@ -147,8 +155,7 @@ public:
 		case mat_mix: return material::mix(r, rec, tex, mat);
 		case mat_ggx: return material::ggx(r, rec, tex, mat);
 		case mat_vnd: return material::vndf(r, rec, tex, mat);
-		case mat_uli: return material::uni_li(r, rec, tex, mat);
-		case mat_dli: return material::dir_li(r, rec, tex, mat);
+		case mat_lig: return material::light(r, rec, tex, mat);
 		default: return;
 		};
 	}

@@ -56,10 +56,10 @@ inline vec3 reflect(vec3 v, vec3 n)
 {
 	return v - 2.f * dot(v, n) * n;
 }
-inline vec3 refract(vec3 v, vec3 n,float nov, float eta) {
-	vec3 r1 = eta * (v + nov * n);
-	vec3 r2 = -sqrtf(fabsf(1.0f - r1.len2())) * n;
-	return r1 + r2;
+inline vec3 refract(vec3 v, vec3 n, float eta) {
+	float NoV = dot(v, n);
+	float k = 1.f - eta * eta * (1.f - NoV * NoV);
+	return eta * v - (eta * NoV + sqrtf(fabsf(k))) * n;
 }
 inline vec3 normal(vec3 u, vec3 v) {
 	vec3 uv = cross(u, v);

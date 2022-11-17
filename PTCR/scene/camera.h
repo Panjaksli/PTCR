@@ -35,11 +35,12 @@ public:
 		vec3 r = foc_l * sa_disk() / fstop;
 		r = T * r;
 		vec3 O(T.P());
-		return ray(O - r, D + r, 1);
+		//offset the ray by focal lenght divided by shutter size
+		return ray(O - r, D + r, true);
 	}
 	__forceinline void pixel(uint y, uint x, vec3 col)
 	{
-		CCD.add(y, x, col * exposure);
+		CCD.add(y, x, vec3(col, 1.f / exposure));
 		CCD.outpix(y, x);
 	}
 
@@ -60,6 +61,6 @@ public:
 
 		return diagonal / (2 * tanf(0.5f * torad(fov)));
 	}
-	
+
 };
 

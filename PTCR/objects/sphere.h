@@ -25,11 +25,11 @@ public:
 		float d = sqrtf(d2);
 		float t1 = b - d;
 		float t2 = b + d;
-		bool face = c > 0;
-		float t = face ? t1 : t2;// minp(t1, t2);
+		float t = minp(t1, t2);
 		if (inside(t, eps2, rec.t)){
 			vec3 P = r.at(t);
 			vec3 N = (P - Qr) / Qr.w;
+			bool face = dot(r.D,N) < 0;
 			rec.N = face ? N : -N;
 			rec.P = P;
 			rec.t = t;

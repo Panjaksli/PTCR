@@ -63,7 +63,7 @@ inline vec3 sa_vndf(vec3 V_, float ro)
 	vec3 ang = sqrtf(r[0]) * cossin(phi);
 	float P1 = ang.x;
 	float P2 = neg ? ang.y : ang.y * V.z;
-	float P3 = sqrtf(fmaxf(0, 1.f - P1 * P1 - P2 * P2));
+	float P3 = sqrtf(fabsf(1.f - P1 * P1 - P2 * P2));
 	vec3 N = P1 * T1 + P2 * T2 + P3 * V;
 	N.z = fmaxf(N.z, 0);
 	N = norm(scl * N);

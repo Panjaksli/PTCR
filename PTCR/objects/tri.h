@@ -33,7 +33,7 @@ public:
 			rec.t = t;
 			rec.u = u;
 			rec.v = v;
-			rec.face = face;
+			rec.face = true;
 			return true;
 		}
 		return false;

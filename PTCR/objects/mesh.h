@@ -55,9 +55,9 @@ public:
 		float y = 0.f;
 		for (uint i = 0; i < size; i++)
 		{
-			y += prim[i].pdf(r);
+			y += lw * prim[i].pdf(r);
 		}
-		return lw * y;
+		return y;
 	}
 	__forceinline vec3 rand_to(vec3 O) const {
 		if (size == 1) return prim[0].rand_to(O);

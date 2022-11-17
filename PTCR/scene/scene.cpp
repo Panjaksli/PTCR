@@ -34,6 +34,7 @@ obj_id scene::get_id(float py, float px, matrix& T) const
 void scene::set_trans(obj_id id, const matrix& T) {
 	if (id.type == o_bla)
 	{
+		//if nothing hit, transform sky
 		sun_pos = T;
 		sun_pos.set_P(vec3());
 	}
@@ -44,12 +45,13 @@ void scene::set_trans(obj_id id, const matrix& T) {
 }
 
 void scene::render(uint *disp, uint pitch) {
+	//write straight to texture (tiny bit less overhead)
 	cam.CCD.set_disp(disp, pitch);
 	float invs = 1.f / fmaxf(opt.samples, 1);
 	cam_autofocus();
-	if (cam.moving)cam.CCD.t = 0.f;
-	if (world.lights.size() <= 0)
-		opt.li_sa = 0;
+	if (cam.moving)cam.CCD.spp = 0.f;
+	opt.li_sa = opt.li_sa && world.lights.size() > 0;
+	opt.sun_sa = opt.sun_sa && opt.sky;
 	cam.CCD.dt(opt.samples);
 #if DEBUG
 	invs = opt.dbg_at || opt.dbg_n || opt.dbg_uv || opt.dbg_t ? 1.f : invs;

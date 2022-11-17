@@ -4,7 +4,7 @@ void sensor::clear() {
 #pragma omp parallel for schedule(static,100)
 	for (auto& buff : data)
 		buff = vec3();
-	t = 0.f;
+	spp = 0.f;
 }
 void sensor::resize(uint _w, uint _h) {
 	w = _w;

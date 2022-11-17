@@ -30,13 +30,13 @@ public:
 		{
 			vec3 P = r.at(t);
 			vec3 W = (P - Qa) / Qa.w;
-			vec3 N = norm(toint(1.000001f * W));
+			vec3 N = norm(toint(1.00001f * W));
 			vec3 UV = 0.5f * (1.f + W - N);
 			rec.N = face ? N : -N;
 			rec.P = r.at(t);
 			rec.t = t;
-			rec.u = fabs(UV.x - 0.5f) > eps ? UV.x : UV.z;
-			rec.v = fabs(UV.y - 0.5f) > eps ? UV.y : UV.z;
+			rec.u = fabs(UV.x - 0.5f) > eps2 ? UV.x : UV.z;
+			rec.v = fabs(UV.y - 0.5f) > eps2 ? UV.y : UV.z;
 			rec.face = face;
 			return true;
 		}
@@ -80,6 +80,8 @@ public:
 					if (dot(L, N) > 0)
 						return L;
 				}
+				//smaller waste of rejection sampling, pick one side, than eventually rotate to all 6
+				//gotta choose rotated side randomly to get unbiased results //  left or right depending on beginning condition
 				if (dir)
 				{
 					W = rotl3(W);

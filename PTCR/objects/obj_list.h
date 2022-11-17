@@ -22,8 +22,8 @@ public:
 		if (lights.size() == 1)return objects[lights[0]].pdf(r);
 		float y = 0.f;
 		for (const auto& light : lights)
-			y += objects[light].pdf(r);
-		return lw * y;
+			y += lw * objects[light].pdf(r);
+		return y;
 	}
 	__forceinline inline vec3 rand_to(vec3 O) const {
 		if (lights.size() == 1)return objects[lights[0]].rand_to(O);

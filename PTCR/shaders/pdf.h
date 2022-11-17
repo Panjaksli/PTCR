@@ -15,19 +15,16 @@ public:
 	}
 	vec3 N, L;
 };
-//class vnd_pdf {
-//public:
-//	vnd_pdf() {}
-//	vnd_pdf(vec3 _N,vec3 _H, vec3 _V) : N(_N),H(_H) V(_V) {}
-//
-//	inline float value(vec3 V) const {
-//		return MGGX()
-//	}
-//	inline vec3 generate() const {
-//		return V;
-//	}
-//	vec3 N, H, V;
-//};
+class sph_pdf {
+public:
+	sph_pdf() {}
+	inline float value(vec3 V) const {
+		return 1.f / (4.f * pi);
+	}
+	inline vec3 generate() const {
+		return sa_sph();
+	}
+};
 class lig_pdf {
 public:
 	lig_pdf(const obj_list& _obj, vec3 _O) : obj(_obj), O(_O) {}
@@ -50,12 +47,14 @@ class sun_pdf {
 public:
 	sun_pdf(const matrix& _T, vec3 _O) : T(_T), O(_O) {}
 	inline float value(vec3 V) const {
+		//a bit of geometry
 		float dp = dot(V, T * vec3(0, 1, 0));
 		constexpr float pdf = sun_angle * sun_angle * ipi;
 		if(dp<maxdp)return 0;
 		return pdf / dp;
 	}
 	inline vec3 generate() const {
+		//simplify sun projection as simple cone samppling
 		vec3 r = sa_disk();
 		vec3 V = T * norm(vec3(r[0], sun_angle, r[1]));
 		return V;

@@ -5,19 +5,21 @@
 #include "camera.h"
 
 struct options {
+	options() {}
 	float res_scale = 1.f;
 	float res_rate = 1.f;
 	float p_life = 0.5f;
 	float i_life = 2.f;
 	int bounces = 5;
 	int samples = 2;
+	bool sky = 1;
 	bool sun_sa = 1;
 	bool li_sa = 1;
 	bool dbg_at = 0;
 	bool dbg_n = 0;
 	bool dbg_uv = 0;
 	bool dbg_t = 0;
-	bool recur = 1;
+	bool recur = 0;
 	bool p_mode = 0;
 };
 
@@ -74,7 +76,16 @@ private:
 		else if (opt.li_sa) return sa_li(mat, P, p1, p2);
 		else return sa_none(mat, P, p1, p2);
 	}
-
+	__forceinline ray sa_fog(const vec3& P, float& p1, float& p2) const
+	{
+		sph_pdf fog;
+		sun_pdf sun(sun_pos, P);
+		mix_pdf<sun_pdf, sph_pdf> mix(sun, fog);
+		ray R(P, mix.generate());
+		p1 = fog.value(R.D);
+		p2 = mix.value(R.D);
+		return R;
+	}
 	__forceinline ray sa_li_sun(const matrec& mat, const vec3& P, float& p1, float& p2) const
 	{
 		cos_pdf cosine(mat.N, mat.L);
@@ -134,6 +145,7 @@ private:
 	}
 	__forceinline vec3 sky(vec3 V) const
 	{
+		if (!opt.sky)return 0;
 		vec3 A = sun_pos * vec3(0, 1, 0);
 		float dp = posdot(V, A);
 		float dp2 = 0.5f * (1.f + dot(V, A));

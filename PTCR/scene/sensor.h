@@ -10,27 +10,27 @@ public:
 	uint* disp = nullptr;
 	uint w = 0, h = 0, n = 0;
 	uint pitch = 0;
-	float t = 0.f;
+	float spp = 0.f;
 
 
-	__forceinline void add(uint col, uint row, const vec3& t) {
-		uint off = col * w + row;
-		data[off] += fixnan(vec3(t, 1));
+	__forceinline void add(uint i, uint j, const vec3& col) {
+		uint off = i * w + j;
+		data[off] += fixnan(col);
 	}
-	inline void set(uint col, uint row, const vec3& t) {
-		uint off = col * w + row;
-		data[off] = fixnan(vec3(t, 1));
+	inline void set(uint i, uint j, const vec3& col) {
+		uint off = i * w + j;
+		data[off] = fixnan(col);
 	}
 	inline void clear(uint i) {
 		data[i] = vec3();
 	}
-	inline void clear(uint col, uint row) {
-		uint off = col * w + row;
+	inline void clear(uint i, uint j) {
+		uint off = i * w + j;
 		data[off] = vec3();
 	}
-	__forceinline void outpix(uint col, uint row) {
-		uint off = col * w + row;
-		uint off2 = col * pitch + row;
+	__forceinline void outpix(uint i, uint j) {
+		uint off = i * w + j;
+		uint off2 = i * pitch + j;
 		bgr(data[off], disp[off2]);
 	}
 	inline void set_disp(uint* _disp, uint _pitch) {
@@ -38,7 +38,7 @@ public:
 		pitch = _pitch;
 	}
 	inline void dt(float _t = 1.f) {
-		t += _t;
+		spp += _t;
 	}
 
 	void clear();

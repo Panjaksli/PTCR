@@ -4,6 +4,7 @@
 #include "stb/stb_image.h"
 #include "stb/stb_image_write.h"
 #include <ctime>
+#include <string>
 bool texture::load(const std::string filename) {
 	int n = 4;
 	int width, height;
@@ -37,12 +38,14 @@ void save_png(void* img, uint w, uint h) {
 	}
 	delete[]buff;
 }
-void save_hdr(vector<vec3>& img, uint w, uint h) {
+void save_hdr(vector<vec3>& img, uint w, uint h, int spp) {
 	static char name[20];
 	time_t now = time(0);
-	strftime(name, sizeof(name), "%Y%m%d_%H%M%S", localtime(&now));
+	std::tm tm;
+	localtime_s(&tm, &now);
+	strftime(name, sizeof(name), "%Y%m%d_%H%M%S", &tm);
 	std::string file(name);
-	file = "screenshots/" + file + ".png";
+	file = "screenshots/" + file + "_" + std::to_string(spp) + "SPP.png";
 	uint* buff = new uint[w * h];
 	for (uint i = 0; i < img.size(); i++)
 	{

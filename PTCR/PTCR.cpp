@@ -8,12 +8,12 @@
 #include "event_handler.h"
 #define WIDTH 800
 #define HEIGHT 600
-#define SCALE 1 //0.6666667f
+#define SCALE 1 //0.
 #define CLAMP ImGuiSliderFlags_AlwaysClamp
 #if DEBUG
 bool use_normal_maps = 1;
 #endif
-bool dbg_mer = 1;
+
 int main()
 {
 	uint width = WIDTH, height = HEIGHT;
@@ -54,7 +54,7 @@ int main()
 	scale = SCALE;
 	bool& moving = scn.cam.moving;
 	bool tap_to_focus = 0;
-	int scene = 1;
+	int scn_n = 1;
 	scn1(scn);
 	printf("init done!!!\n");
 	matrix T;
@@ -110,16 +110,11 @@ int main()
 			ImGui::Begin("Camera settings");
 			ImGui::SameLine();
 			if (ImGui::Button("Screenshot")) {
-				save_hdr(scn.cam.CCD.data, scn.cam.w, scn.cam.h);
+				save_hdr(scn.cam.CCD.data, scn.cam.w, scn.cam.h,scn.cam.CCD.spp);
 			}
-			if (ImGui::SliderInt("Scene", &scene, 1, 3)) {
+			if (ImGui::SliderInt("Scene", &scn_n, 1, no_scn)) {
 				moving = 1;
-				switch (scene) {
-				case 1: scn1(scn); break;
-				case 2: scn2(scn); break;
-				case 3: scn3(scn); break;
-				default: scn1(scn); break;
-				}
+				scn_load(scn,scn_n);
 			}
 			ImGui::DragFloat("Speed", &scn.cam.speed, 0.001, 0.001, 1e3f, "% .2f");
 			if (ImGui::DragFloat("FOV", &scn.cam.fov, 0.1, 0.001, 179, "%.1f"))
@@ -159,11 +154,11 @@ int main()
 			moving |= ImGui::InputInt("Bounces", &scn.opt.bounces, 1, 1);
 			moving |= ImGui::Checkbox("Light sampling", &scn.opt.li_sa); ImGui::SameLine();
 			moving |= ImGui::Checkbox("Sun sampling", &scn.opt.sun_sa);
+			moving |= ImGui::Checkbox("Sky", &scn.opt.sky);
 
 #if DEBUG
 
 			moving |= ImGui::Checkbox("Debug Aten", &scn.opt.dbg_at); ImGui::SameLine();
-			moving |= ImGui::Checkbox("Debug mer", &dbg_mer); 
 			moving |= ImGui::Checkbox("Debug N", &scn.opt.dbg_n);
 			moving |= ImGui::Checkbox("Debug UV", &scn.opt.dbg_uv);	ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug t", &scn.opt.dbg_t);
@@ -174,7 +169,7 @@ int main()
 			ImGui::Checkbox("Denoise", &denoise);// ImGui::SameLine();
 			moving |= !denoise;
 #endif
-			ImGui::Text("%.2f ms %.1f FPS,Samples %.1fk", 1000.0f / smooth_fps, smooth_fps, scn.cam.CCD.t * 0.001f);
+			ImGui::Text("%.2f ms %.1f FPS,SPP %.1fk", 1000.0f / smooth_fps, smooth_fps, scn.cam.CCD.spp * 0.001f);
 			ImGui::End();
 
 
