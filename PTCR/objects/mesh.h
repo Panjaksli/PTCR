@@ -118,6 +118,19 @@ struct mesh_var {
 		default:break;
 		}
 	}
+	const mesh_var& operator=(const mesh_var& cpy) {
+		id = cpy.id;
+		switch (id) {
+		case o_sph: s = cpy.s; break;
+		case o_qua: q = cpy.q; break;
+		case o_tri: t = cpy.t; break;
+		case o_vox:	v = cpy.v; break;
+		case o_bla:
+		case o_bvh:
+		default:break;
+		}
+		return *this;
+	}
 	~mesh_var() {
 		//Destructor DOES matter here (each type holds a different pointer, thus correct delete[] method shall be called !)
 		switch (id) {
@@ -211,6 +224,6 @@ struct mesh_var {
 		tmesh t;
 		vmesh v;
 	};
-	const obj_enum id;
+	obj_enum id;
 };
 #pragma pack(pop)

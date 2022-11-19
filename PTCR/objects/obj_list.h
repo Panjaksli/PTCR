@@ -15,9 +15,16 @@ public:
 		bool hit = false;
 		for (auto& obj : objects)hit |= obj.hit(r, rec);
 		return hit;
+		/*if (bvh.size() < 1) {
+		}
+		else {
+			return hit_bvh(r, rec);
+		}*/
 	}
-
-	__forceinline inline float pdf(const ray& r)const {
+	__forceinline bool hit_bvh(const ray& r, hitrec& rec) const {
+		return false;
+	}
+	__forceinline float pdf(const ray& r)const {
 		if (!bbox.hit(r))return 0;
 		if (lights.size() == 1)return objects[lights[0]].pdf(r);
 		float y = 0.f;
@@ -25,17 +32,34 @@ public:
 			y += lw * objects[light].pdf(r);
 		return y;
 	}
-	__forceinline inline vec3 rand_to(vec3 O) const {
+	__forceinline vec3 rand_to(vec3 O) const {
 		if (lights.size() == 1)return objects[lights[0]].rand_to(O);
 		uint id = raint(lights.size() - 1);
 		const uint light = lights[id];
 		return objects[light].rand_to(O);
 	}
-	__forceinline inline vec3 rand_from() const {
+	__forceinline vec3 rand_from() const {
 		if (lights.size() == 1)return objects[lights[0]].rand_from();
 		uint id = raint(lights.size() - 1);
 		uint light = lights[id];
 		return objects[light].rand_from();
+	}
+	void build_bvh() {
+		auto cmp_axis_x = [](const mesh_var& a, const mesh_var& b) {
+			return a.get_box().pmin.x < b.get_box().pmin.x;
+		};
+		auto cmp_axis_y = [](const mesh_var& a, const mesh_var& b) {
+			return a.get_box().pmin.y < b.get_box().pmin.y;
+		};
+		auto cmp_axis_z = [](const mesh_var& a, const mesh_var& b) {
+			return a.get_box().pmin.z < b.get_box().pmin.z;
+		};
+		uint axis = bbox.get_longest_axis();
+		auto begin = objects.begin();
+		auto end = objects.end();
+		if (axis == 0)std::sort(begin, end, cmp_axis_x);
+		else if (axis == 1)std::sort(begin, end, cmp_axis_y);
+		else std::sort(begin, end, cmp_axis_z);
 	}
 	//Declarations
 	template <typename T>
@@ -65,6 +89,7 @@ public:
 	aabb bbox;
 	vector<uint> lights;
 	vector<mesh_var> objects;
+	vector<bvh_node> bvh;
 	vector<mat_var> materials;
 	float lw;
 };

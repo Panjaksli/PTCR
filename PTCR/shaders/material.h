@@ -43,7 +43,7 @@ namespace material {
 			return;
 		}
 		vec3 H = n.world(sa_ggx(a));
-		float HoV = absdot(H, -r.D);
+		float HoV = dot(H, -r.D);
 		if (HoV < 0) return;
 		float Fr = fres_refl(HoV, ir);
 		bool metal = rafl() < mer.x;

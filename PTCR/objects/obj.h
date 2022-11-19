@@ -16,6 +16,14 @@ struct obj_id {
 	}
 };
 
+struct bvh_node {
+	aabb bbox;
+	uint left, right;
+	bool leaf;
+};
+
+
+
 struct hitrec
 {
 	vec3 N, P;

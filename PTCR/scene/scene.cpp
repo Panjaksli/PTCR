@@ -52,7 +52,7 @@ void scene::render(uint *disp, uint pitch) {
 	if (cam.moving)cam.CCD.spp = 0.f;
 	opt.li_sa = opt.li_sa && world.lights.size() > 0;
 	opt.sun_sa = opt.sun_sa && opt.sky;
-	cam.CCD.dt(opt.samples);
+	cam.CCD.dt(opt.samples*opt.res_rate);
 #if DEBUG
 	invs = opt.dbg_at || opt.dbg_n || opt.dbg_uv || opt.dbg_t ? 1.f : invs;
 #endif

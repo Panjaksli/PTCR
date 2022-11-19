@@ -8,9 +8,9 @@ struct options {
 	options() {}
 	float res_scale = 1.f;
 	float res_rate = 1.f;
-	float p_life = 0.5f;
-	float i_life = 2.f;
-	int bounces = 5;
+	float p_life = 0.9f;
+	float i_life = 1.f/0.9f;
+	int bounces = 10;
 	int samples = 2;
 	bool sky = 1;
 	bool sun_sa = 1;

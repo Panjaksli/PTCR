@@ -6,9 +6,9 @@
 #include <imgui_impl_sdlrenderer.h>
 #include "scenes.h"
 #include "event_handler.h"
-#define WIDTH 800
-#define HEIGHT 600
-#define SCALE 1 //0.
+#define WIDTH 960
+#define HEIGHT 720
+#define SCALE 1.f //0.
 #define CLAMP ImGuiSliderFlags_AlwaysClamp
 #if DEBUG
 bool use_normal_maps = 1;
@@ -22,7 +22,7 @@ int main()
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
 #endif
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-	SDL_Window* window = SDL_CreateWindow("RTCR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * 4 / 3, height, SDL_WINDOW_SHOWN);
+	SDL_Window* window = SDL_CreateWindow("PTCR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * 4 / 3, height, SDL_WINDOW_SHOWN);
 	SDL_SetWindowMinimumSize(window, 200, 200);
 	SDL_Texture* frame;
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -140,7 +140,7 @@ int main()
 			moving |= ImGui::DragFloat("Exposure", &scn.cam.exposure, 0.1, 0.01, 100.f, "% .2f", 1.1f);
 			moving |= ImGui::DragFloat("F-stop", &scn.cam.fstop, 0.1, 0.1f, 64.f, "% .2f", 1.1f);
 
-			if (ImGui::DragFloat("Res scale", &scale, 0.01, 0.01, 2, " % .2f", CLAMP))
+			if (ImGui::DragFloat("Res scale", &scale, 0.01, 0.1, 4, " % .2f", CLAMP))
 			{
 				scn.cam.resize(width, height, scale);
 				scn.cam.update();

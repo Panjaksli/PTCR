@@ -49,13 +49,13 @@ public:
 		float NoL = absdot(r.D, rec.N);
 		if (!rec.face)return rec.t * rec.t / (6.f * S * NoL);
 		else {
-			//computes visible faces (took looooong enough to figure out, 10 hours)
+			//computes visible faces (took looooong enough to figure out, ~10 hours)
 			//if point's bound is inside 2 coordinates of box, it can see only one face,
 			//if only one bound is inside, it can see 2 faces,
 			//and when none coordinates are inside, 3 faces are visible
 			//multiply S by number of visible faces to get correct pdf
 			vec3 faces = vec_ins(r.O, A(), B());
-			float visible = 3.f - dot(faces, 1.f);
+			float visible = 3.f - sum(faces);
 			return rec.t * rec.t / (visible * S * NoL);
 		}
 	}
@@ -67,32 +67,20 @@ public:
 #if 1
 			vec3 r = ravec();
 			vec3 W = r / max(fabs(r));
-			vec3 N = norm(toint(1.00001f * W));
+			vec3 N = toint(1.0000001f * W);
 			bool dir = rafl() < 0.5f;
+			//smaller waste of rejection sampling, pick one side, than eventually rotate to all 6
+			//gotta choose rotated side randomly to get unbiased results; left or right depending on beginning condition
 			for (int i = 0; i < 3; i++) {
 				vec3 P = Qa + Qa.w * W;
-				vec3 L = norm(P - O);
-				if (inside || dot(L, N) < 0)
-					return L;
-				else {
-					vec3 P = Qa - Qa.w * W;
-					vec3 L = norm(P - O);
-					if (dot(L, N) > 0)
-						return L;
-				}
-				//smaller waste of rejection sampling, pick one side, than eventually rotate to all 6
-				//gotta choose rotated side randomly to get unbiased results //  left or right depending on beginning condition
-				if (dir)
-				{
-					W = rotl3(W);
-					N = rotl3(N);
-				}
-				else {
-					W = rotr3(W);
-					N = rotr3(N);
-				}
+				vec3 L = P - O;
+				if (inside || dot(L, N) < 0) return norm(L);
+				P = Qa - Qa.w * W;
+				L = P - O;
+				if (dot(L, N) > 0) return norm(L);
+				W = dir ? rotl3(W) : rotr3(W);
+				N = dir ? rotl3(N) : rotr3(N);
 			}
-			
 #else
 			vec3 r = ravec();
 			vec3 W = r / max(fabs(r));

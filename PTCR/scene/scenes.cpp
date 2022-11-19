@@ -32,7 +32,7 @@ void scn2(scene& scn) {
 	albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 10);
 	albedo white(vec3(0.8, 0.8, 0.8), vec3(0, 5, 0));
 	albedo pbrcol(vec3(0.5, 0.1, 0.1), vec3(), texture("iron_block_normal.png"), 10);
-	scn.world.add_mat(albedo(vec3(0.8, 0.8, 0.8,1), vec3(0,0,1)), mat_ggx);
+	scn.world.add_mat(albedo(vec3(0.8, 0.8, 0.8,1), vec3(0,0,1)), mat_mix);
 	scn.world.add_mat(iron, mat_ggx);
 	scn.world.add_mat(white, mat_lig);
 	vector<quad> room(6);
@@ -71,7 +71,7 @@ void scn4(scene& scn) {
 	scn.world.add_mat(clear, mat_mix);
 	scn.world.add_mat(light, mat_lig);
 	scn.world.add(quad(vec3(-10, eps, -10), vec3(10, eps, -10), vec3(-10, eps, 10)), 0);
-	scn.world.add(voxel(vec3(0, 1+eps, 0, 1)), 1, 1);
+	scn.world.add(voxel(vec3(0, 1+10*eps, 0, 1)), 1, 1);
 	scn.world.add(sphere(vec3(3, 3, 3, 0.5)), 2 , 1);
 	scn.opt = options();
 	scn.opt.sky = false;

@@ -1,6 +1,7 @@
 #include "obj_list.h"
 void obj_list::clear()
 {
+	bvh.clear();
 	objects.clear();
 	lights.clear();
 	materials.clear();
