@@ -17,4 +17,5 @@ inline void scn_load(scene& scn, int n) {
 	case 5: scn5(scn); break;
 	default: scn1(scn); break;
 	}
+	scn.world.build_bvh();
 }

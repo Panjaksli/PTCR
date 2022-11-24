@@ -1,6 +1,7 @@
 #pragma once
 #include "vec3.h"
 #include "ray.h"
+
 class aabb {
 public:
 	aabb() {}
@@ -34,11 +35,15 @@ public:
 		nbox.pad();
 		return nbox;
 	}
-	inline uchar get_longest_axis() {
+	inline vec3 pmid()const {
+		return 0.5f * (pmin + pmax);
+	}
+	inline uchar get_longest_axis() const{
 		vec3 x = abs(pmax - pmin);
-		if (x.x > x.y && x.x > x.z)return 0;
-		else if (x.y > x.x && x.y > x.z)return 1;
-		else return 2;
+		uchar axis = 0;
+		if (x.y > x.x) axis = 1;
+		if (x.z > x[axis]) axis = 2;
+		return axis;
 	}
 	void print()const {
 		pmin.print();
@@ -56,7 +61,20 @@ public:
 		float maxt = min(tmax);
 		return mint <= maxt && maxt > 0;
 	}
-
+	__forceinline bool hit(const ray& r, float &t) const {
+		vec3 t1 = (pmin - r.O) * r.iD;
+		vec3 t2 = (pmax - r.O) * r.iD;
+		vec3 tmin = min(t1, t2);
+		vec3 tmax = max(t1, t2);
+		float mint = max(tmin);
+		float maxt = min(tmax);
+		float dist = (mint > 0 ? mint : maxt);
+		if (mint <= maxt && maxt > 0&&(dist < t)) {
+			t = dist;
+			return true;
+		}
+		return false;
+	}
 	inline bool hit(const ray& r, float min_t, float max_t) const {
 		vec3 t1 = (pmin - r.O) * r.iD;
 		vec3 t2 = (pmax - r.O) * r.iD;
@@ -66,7 +84,7 @@ public:
 		float maxt = min(tmax);
 		bool face = mint > 0;
 		float t = face ? mint : maxt;
-		return mint <= maxt && inside(t, min_t, max_t);
+		return mint <= maxt && maxt > 0 && inside(t, min_t, max_t);
 	}
 	vec3 pmin, pmax;
 };

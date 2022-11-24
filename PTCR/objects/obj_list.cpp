@@ -22,6 +22,7 @@ void obj_list::get_trans(const obj_id id, matrix& T)const
 void obj_list::set_trans(obj_id id, const matrix& T) {
 	objects[id.id].set_trans(T);
 	fit();
+	rebuild_bvh();
 }
 void obj_list::fit() {
 	bbox = aabb();

@@ -20,7 +20,7 @@ enum mat_enum {
 };
 
 namespace material {
-
+	constexpr int mat_cnt = 4;
 	__forceinline void mix(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		//simple mix of lambertian and mirror reflection/transmission + emission
 		vec3 rgb = tex.rgb(rec.u, rec.v);
@@ -43,8 +43,7 @@ namespace material {
 			return;
 		}
 		vec3 H = n.world(sa_ggx(a));
-		float HoV = dot(H, -r.D);
-		if (HoV < 0) return;
+		float HoV = absdot(H, r.D);
 		float Fr = fres_refl(HoV, ir);
 		bool metal = rafl() < mer.x;
 		bool opaque = rafl() < rgb.w;
@@ -79,17 +78,16 @@ namespace material {
 		vec3 N = normal_map(rec.N, nor);
 		onb n = onb(N);
 		vec3 V = n.local(-r.D);
-		float NoV = V.z;
-		if (NoV < 0) return;
 		vec3 H = sa_ggx(a);
 		vec3 L = reflect(-V, H);
+		float NoV = V.z;
 		float NoL = L.z;
 		float NoH = H.z;
-		float HoV = dot(H, V);
-		if (HoV < 0 || NoL < 0 || NoH < 0) return;
+		float HoV = absdot(H, V);
 		vec3 F = fres_spec(HoV, F0);
 		bool spec = rafl() < F.w;
 		if (spec) {
+			if (NoV <= 0 || NoL <= 0 || NoH <= 0) return;
 			float G = GGX(NoL, NoV, a);
 			float W = HoV / (NoV * NoH);
 			mat.scat = F * G * W / F.w;
@@ -115,16 +113,15 @@ namespace material {
 		vec3 N = normal_map(rec.N, nor);
 		onb n = onb(N);
 		vec3 V = n.local(-r.D);
-		float NoV = V.z;
-		if (NoV < 0) return;
 		vec3 H = sa_vndf(V, a);
 		vec3 L = reflect(-V, H);
+		float NoV = V.z;
 		float NoL = L.z;
-		float HoV = dot(H, V);
-		if (HoV < 0 || NoL < 0) return;
+		float HoV = absdot(H, V);
 		vec3 F = fres_spec(HoV, F0);
 		bool spec = rafl() < F.w;
 		if (spec) {
+			if (NoV <= 0 || NoL <= 0) return;
 			mat.scat = F * VNDF_GGX(NoL, NoV, a) / F.w;
 			mat.L = n.world(L);
 			mat.sd = 1;

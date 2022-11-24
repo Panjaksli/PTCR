@@ -34,12 +34,12 @@ int main()
 	ImGui::StyleColorsDark();
 	ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
 	ImGui_ImplSDLRenderer_Init(renderer);
-	bool overlay = true;
 	SDL_PixelFormatEnum Format;
 	Format = SDL_PIXELFORMAT_ARGB8888;
 	frame = SDL_CreateTexture(renderer, Format, SDL_TEXTUREACCESS_STREAMING, SCALE * width, SCALE * height);
 	SDL_Event event;
 	event_handler handle;
+	bool overlay = true;
 	bool running = true;
 	SDL_Rect out = { 0,0,WIDTH,HEIGHT };
 	double frametime = 0;
@@ -55,7 +55,7 @@ int main()
 	bool& moving = scn.cam.moving;
 	bool tap_to_focus = 0;
 	int scn_n = 1;
-	scn1(scn);
+	scn_load(scn, scn_n);
 	printf("init done!!!\n");
 	matrix T;
 	vec3 TP = scn.sun_pos.P();
@@ -113,6 +113,7 @@ int main()
 				save_hdr(scn.cam.CCD.data, scn.cam.w, scn.cam.h,scn.cam.CCD.spp);
 			}
 			if (ImGui::SliderInt("Scene", &scn_n, 1, no_scn)) {
+				id = obj_id();
 				moving = 1;
 				scn_load(scn,scn_n);
 			}
@@ -164,7 +165,7 @@ int main()
 			moving |= ImGui::Checkbox("Debug t", &scn.opt.dbg_t);
 			moving |= ImGui::Checkbox("Normal maps", &use_normal_maps); ImGui::SameLine();
 			moving |= ImGui::Checkbox("Recursion", &scn.opt.recur);
-			moving |= ImGui::Checkbox("Perf mode", &scn.opt.p_mode); ImGui::SameLine();
+			moving |= ImGui::Checkbox("BVH", &en_bvh); ImGui::SameLine();
 			static bool denoise = 1;
 			ImGui::Checkbox("Denoise", &denoise);// ImGui::SameLine();
 			moving |= !denoise;
@@ -185,7 +186,7 @@ int main()
 				albedo& alb = scn.world.materials[scn.world.objects[id.id].get_mat()].tex;
 				int type = (int)scn.world.materials[scn.world.objects[id.id].get_mat()].type;
 				vec3 col = alb.get_rgb(), mer = alb.get_mer();
-				moving |= ImGui::SliderInt("Mat", &type, 0, 4);
+				moving |= ImGui::SliderInt("Mat", &type, 0, material::mat_cnt - 1);
 				moving |= ImGui::InputFloat("Rep", &alb.get_rep(), 1, 10);
 				moving |= ImGui::ColorEdit4("Col", col._xyz, ImGuiColorEditFlags_Float);
 				moving |= ImGui::ColorEdit3("Mer", mer._xyz, ImGuiColorEditFlags_Float);

@@ -1,4 +1,5 @@
 #include "scenes.h"
+bool en_bvh = 1;
 void scn1(scene& scn) {
 	scn.world.clear();
 	/*albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 2e2);
@@ -25,6 +26,7 @@ void scn1(scene& scn) {
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
 	scn.cam.setup(matrix(vec3(0, 1.7, 1), vec3(0, 0, 0)), 70, 1.f);
+	en_bvh = 0;
 }
 void scn2(scene& scn) {
 	scn.world.clear();
@@ -48,9 +50,11 @@ void scn2(scene& scn) {
 	scn.world.add(voxel(vec3(0, 1.9, 0, 0.1)), 2, 1);
 	scn.sun_pos.set_A(vec3(-1, 0, 0));
 	scn.cam.setup(matrix(vec3(2, 1, 0), vec3(0, hpi, 0)), 90, 10);
+	en_bvh = 0;
 }
 void scn3(scene& scn) {
 	scn.world.clear();
+	//for (int k = 0; k <= 10; k++)
 	for (int i = 0; i <= 10; i++) {
 		for (int j = 0; j <= 10; j++) {
 			albedo pbrcol(vec3(0.9f, 0.6f, 0.), vec3(0.1 * i, 0, 0.1 * j), vec3(0.5, 0.5, 1), 10);
@@ -61,6 +65,7 @@ void scn3(scene& scn) {
 	scn.opt = options();
 	scn.sun_pos.set_A(vec3(1, 0, 1));
 	scn.cam.setup(matrix(vec3(1, 1, 10), vec3(0, 0, 0)), 47, 10);
+	en_bvh = 1;
 }
 void scn4(scene& scn) {
 	scn.world.clear();
@@ -80,6 +85,7 @@ void scn4(scene& scn) {
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
 	scn.cam.setup(matrix(vec3(3, 3, -3), vec3(0, 3*pi/4, -pi/6)), 60, 1.f);
+	en_bvh = 0;
 }
 void scn5(scene& scn) {
 	scn.world.clear();
@@ -114,4 +120,5 @@ void scn5(scene& scn) {
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
 	scn.cam.setup(matrix(vec3(l/2, 0.2f, l),vec3(0)), 40, 16.f);
+	en_bvh = 0;
 }
