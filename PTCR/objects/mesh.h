@@ -76,11 +76,7 @@ public:
 		return prim[id].rand_from();
 	}
 	inline vector<primitive> get_data()const {
-		vector<primitive> data;
-		data.reserve(size);
-		for (uint i = 0; i < size; i++)
-			data.push_back(prim[i]);
-		return data;
+		return vector<primitive>(prim,prim+size);
 	}
 	inline uint get_mat()const {
 		return mat;

@@ -61,31 +61,6 @@ public:
 		float maxt = min(tmax);
 		return mint <= maxt && maxt > 0;
 	}
-	__forceinline bool hit(const ray& r, float &t) const {
-		vec3 t1 = (pmin - r.O) * r.iD;
-		vec3 t2 = (pmax - r.O) * r.iD;
-		vec3 tmin = min(t1, t2);
-		vec3 tmax = max(t1, t2);
-		float mint = max(tmin);
-		float maxt = min(tmax);
-		float dist = (mint > 0 ? mint : maxt);
-		if (mint <= maxt && maxt > 0&&(dist < t)) {
-			t = dist;
-			return true;
-		}
-		return false;
-	}
-	inline bool hit(const ray& r, float min_t, float max_t) const {
-		vec3 t1 = (pmin - r.O) * r.iD;
-		vec3 t2 = (pmax - r.O) * r.iD;
-		vec3 tmin = min(t1, t2);
-		vec3 tmax = max(t1, t2);
-		float mint = max(tmin);
-		float maxt = min(tmax);
-		bool face = mint > 0;
-		float t = face ? mint : maxt;
-		return mint <= maxt && maxt > 0 && inside(t, min_t, max_t);
-	}
 	vec3 pmin, pmax;
 };
 

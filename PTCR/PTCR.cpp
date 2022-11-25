@@ -176,12 +176,8 @@ int main()
 			ImGui::Text("%.2f ms %.1f FPS,SPP %.1fk", 1000.0f / smooth_fps, smooth_fps, scn.cam.CCD.spp * 0.001f);
 			ImGui::End();
 
-
-
-
 			ImGui::SetNextWindowPos(ImVec2(WIDTH, HEIGHT / 2));
 			ImGui::SetNextWindowSize(ImVec2(WIDTH * 16 / 12 - WIDTH, HEIGHT / 2));
-
 
 			ImGui::Begin("Object properties");
 			
@@ -192,15 +188,16 @@ int main()
 			}
 			ImGui::Text("ID: %d, Type: %d", id.id, id.type);
 			if (id.type != o_bla) {
-				albedo& alb = scn.world.materials[scn.world.objects[id.id].get_mat()].tex;
-				int type = (int)scn.world.materials[scn.world.objects[id.id].get_mat()].type;
+				const mesh_var& obb = id.bvh ? scn.world.objects[id.id] : scn.world.skp_bvh[id.id];
+				albedo& alb = scn.world.materials[obb.get_mat()].tex;
+				int type = (int)scn.world.materials[obb.get_mat()].type;
 				vec3 col = alb.get_rgb(), mer = alb.get_mer();
 				moving |= ImGui::SliderInt("Mat", &type, 0, material::mat_cnt - 1);
 				moving |= ImGui::InputFloat("Rep", &alb.get_rep(), 1, 10);
 				moving |= ImGui::ColorEdit4("Col", col._xyz, ImGuiColorEditFlags_Float);
 				moving |= ImGui::ColorEdit3("Mer", mer._xyz, ImGuiColorEditFlags_Float);
 				moving |= ImGui::DragFloat("Ir", &alb.get_ir(),0.01f, 1.f, 4.f);
-				scn.world.materials[scn.world.objects[id.id].get_mat()].type = (mat_enum)type;
+				scn.world.materials[obb.get_mat()].type = (mat_enum)type;
 				alb.set_rgb(col);
 				alb.set_mer(mer);
 			}
