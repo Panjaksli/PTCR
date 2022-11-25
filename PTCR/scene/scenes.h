@@ -8,6 +8,7 @@ void scn3(scene& scn);
 void scn4(scene& scn);
 void scn5(scene& scn);
 void scn6(scene& scn);
+std::vector<tri> load_OBJ(const char* name, vec3 off = 0, float scale = 1.f);
 
 inline void scn_load(scene& scn, int n, uint node_size = 8) {
 	switch (n) {

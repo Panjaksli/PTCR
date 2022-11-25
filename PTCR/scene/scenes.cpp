@@ -1,5 +1,12 @@
+#include<iostream>
+#include<string>
+#include<fstream>
+#include<vector>
+#include<sstream>
+#include<algorithm>
 #include "scenes.h"
 bool en_bvh = 1;
+
 void scn1(scene& scn) {
 	scn.world.clear();
 	albedo gnd(vec3(0.8, 0.4, 0.3, 1), vec3(0, 0, 0));
@@ -139,4 +146,104 @@ void scn6(scene& scn) {
 	scn.opt.i_life = 1.f / 0.9f;
 	scn.cam.setup(matrix(vec3(0, 1.7, 1), vec3(0, 0, 0)), 70, 1.f);
 	en_bvh = 1;
+}
+
+std::vector<tri> load_OBJ(const char* name, vec3 off, float scale)
+{
+	struct xyz {
+		xyz() {}
+		union {
+			uint all[3] = {};
+			struct {
+				uint x, y, z;
+			};
+		};
+
+
+	};
+	//Vertex portions
+	std::vector<vec3> v;
+	std::vector<vec3> vt;
+	std::vector<vec3> vn;
+
+	//Face vectors
+	std::vector<xyz> fv;
+	std::vector<xyz> ft;
+	std::vector<xyz> fn;
+
+	//Vertex array
+	std::vector<tri> tris;
+
+	std::stringstream ss;
+	std::ifstream file(name);
+	std::string line = "";
+	std::string pref = "";
+
+	if (!file.is_open())
+	{
+		file = std::ifstream("objects/" + std::string(name));
+		if (!file.is_open())
+			throw "File not found !";
+	}
+
+	while (std::getline(file, line))
+	{
+		ss.clear();
+		ss.str(line);
+		ss >> pref;
+		if (pref == "#");
+		else if (pref == "o");
+		else if (pref == "s");
+		else if (pref == "use_mtl");
+		else if (pref == "v")
+		{
+			vec3 tmp;
+			ss >> tmp.x >> tmp.y >> tmp.z;
+			v.push_back(tmp);
+		}
+		else if (pref == "vt")
+		{
+			vec3 tmp;
+			ss >> tmp.x >> tmp.y;
+			vt.push_back(tmp);
+		}
+		else if (pref == "vn")
+		{
+			vec3 tmp;
+			ss >> tmp.x >> tmp.y >> tmp.z;
+			vn.push_back(tmp);
+		}
+		else if (pref == "f")
+		{
+			int cnt = 0;
+			int tmp = 0;
+			xyz buff = {};
+			while (ss >> tmp)
+			{
+				buff.all[cnt] = tmp - 1;
+				if (ss.peek() == ' ')
+				{
+					++cnt;
+					ss.ignore(1, ' ');
+				}
+			}
+
+			fv.push_back(buff);
+		}
+		else;
+	}
+	tris.resize(fv.size(), tri());
+	for (size_t i = 0; i < fv.size(); i++)
+	{
+		vec3 a = scale * v[fv[i].x];
+		vec3 b = scale * v[fv[i].y];
+		vec3 c = scale * v[fv[i].z];
+		tris[i] = tri(a, b, c);
+	}
+
+	std::cout << "Succesfully loaded: " << name << "\n";
+	std::cout << "No of tris: " << tris.size() << "\n";
+	//Loaded success
+
+	return tris;
 }
