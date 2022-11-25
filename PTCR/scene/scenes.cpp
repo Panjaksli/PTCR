@@ -139,7 +139,7 @@ void scn6(scene& scn) {
 	scn.world.add_mat(red, mat_ggx);
 
 	vector<tri> gourd = load_OBJ("gourd.obj", 0,0.5f);
-	vector<tri> teapot = load_OBJ("teapot.obj", 0,0.01f);
+	vector<tri> teapot = load_OBJ("teapot.obj", 0,0.01f,true);
 	scn.world.add(vec3(0,1,0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
 	scn.world.add(vec3(-0.3,1.79,-1),gourd, 1);
 	scn.world.add(vec3(0.7, 1.4, -1),teapot, 2);
@@ -153,7 +153,7 @@ void scn6(scene& scn) {
 	en_bvh = 1;
 }
 
-std::vector<tri> load_OBJ(const char* name, vec3 off, float scale)
+std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 {
 	struct xyz {
 		xyz() {}
@@ -243,7 +243,7 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale)
 		vec3 a = scale * v[fv[i].x];
 		vec3 b = scale * v[fv[i].y];
 		vec3 c = scale * v[fv[i].z];
-		tris[i] = tri(a, b, c);
+		tris[i] = flip ?tri(a,c,b) : tri(a, b, c);
 	}
 
 	std::cout << "Succesfully loaded: " << name << "\n";
