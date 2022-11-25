@@ -9,12 +9,15 @@ public:
 	tri(vec3 _Q, vec3 _U, vec3 _V, bool param) :Q(_Q), U(_U), V(_V), N(normal(U, V)) {}
 
 	inline aabb get_box()const {
-		return (aabb(Q, Q + U, Q + V) + aabb(Q + U + V, Q + U, Q + V)).padded();
+		return (aabb(Q, Q + U, Q + V) + aabb(Q + U + V, Q + U, Q + V));// .padded();
+	}
+	inline tri trans(const matrix& T) const {
+		vec3 q = T * Q + T.P();
+		vec3 u = T * U;
+		vec3 v = T * V;
+		return tri(q, u, v, true);	
 	}
 
-	inline tri trans(const matrix& T) const {
-		return tri(Q + T.P(), T * U, T * V, 1);
-	}
 	inline bool hit(const ray& r, hitrec& rec) const
 	{
 		vec3 pV = cross(r.D, V);
@@ -25,7 +28,7 @@ public:
 		float u = dot(tV, pV) * iD;
 		float v = dot(r.D, qV) * iD;
 		float t = dot(V, qV) * iD;
-		if (within(u, 0.f, 1.f) && within(v, 0.f, 1.f) && inside(t, eps2, rec.t))
+		if (within(u, 0.f, 1.f) && within(v, 0.f, 1.f - u) && inside(t, eps2, rec.t))
 		{
 			bool face = D > 0;
 			rec.N = face ? N : -N;

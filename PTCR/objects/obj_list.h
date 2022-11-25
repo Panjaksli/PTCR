@@ -1,7 +1,7 @@
 #pragma once
 #include "obj.h"
 #include "mesh.h"
-extern bool en_bvh;
+
 class obj_list {
 public:
 	obj_list() {}
@@ -13,13 +13,9 @@ public:
 		if (!bbox.hit(r)) return false;
 		if (en_bvh)return hit_bvh(r, rec, 0);
 		bool hit = false;
-		for (auto& obj : bvh_obj)hit |= obj.hit(r, rec);
+		for (auto& obj : objects)hit |= obj.hit(r, rec);
 		return hit;
 	}
-	__forceinline bool hit_id(const ray& r, hitrec& rec, uint id) const {
-		return objects[id].hit(r, rec);
-	}
-
 	__forceinline float pdf(const ray& r)const {
 		if (!bbox.hit(r))return 0;
 		if (lights.size() == 1)return objects[lights[0]].pdf(r);
@@ -41,79 +37,9 @@ public:
 		return objects[light].rand_from();
 	}
 	// 0th and last + 1 element
-	aabb box_from(uint begin, uint end) {
-		aabb bbox = aabb();
-		for (uint i = begin; i < end; i++)
-		{
-			bbox.join(bvh_obj[i].get_box());
-		}
-		return bbox;
-	}
-
-	void rebuild_bvh() {
-		bvh.clear();
-		build_bvh();
-	}
-	void build_bvh() {
-		bvh_obj = objects;
-		bvh.reserve(2 * bvh_obj.size());
-		split_bvh(0, bvh_obj.size());
-		//printf("\n%d", (int)bvh.size());
-	}
-
-#if node4
 	__forceinline bool hit_bvh(const ray& r, hitrec& rec, uint id = 0) const {
 		const bvh_node& node = bvh[id];
-		uchar flag = node.flag;
-		if (flag > 4)
-		{
-			bool h1 = bvh[node.n1].bbox.hit(r);
-			bool h2 = bvh[node.n2].bbox.hit(r);
-			bool h3 = bvh[node.n3].bbox.hit(r);
-			bool h4 = bvh[node.n4].bbox.hit(r);
-			bool res = 0;
-			res |= h1 && hit_bvh(r, rec, node.n1);
-			res |= h2 && hit_bvh(r, rec, node.n2);
-			res |= h3 && hit_bvh(r, rec, node.n3);
-			res |= h4 && hit_bvh(r, rec, node.n4);
-			return res;
-		}
-		else if (flag <= 1)return bvh_obj[node.n1].hit(r, rec);
-		else if (flag <= 2)return bvh_obj[node.n1].hit(r, rec) + bvh_obj[node.n2].hit(r, rec);
-		else if (flag <= 3)return bvh_obj[node.n1].hit(r, rec) + bvh_obj[node.n2].hit(r, rec) + bvh_obj[node.n3].hit(r, rec);
-		else if (flag <= 4)return bvh_obj[node.n1].hit(r, rec) + bvh_obj[node.n2].hit(r, rec) + bvh_obj[node.n3].hit(r, rec) + bvh_obj[node.n4].hit(r, rec);
-		else return false;
-	}
-
-	void split_bvh(uint be, uint en) {
-		aabb bbox = box_from(be, en);
-		uint size = en - be;
-		uint axis = bbox.get_longest_axis();
-		auto begin = bvh_obj.begin() + be;
-		auto end = bvh_obj.begin() + en;
-		if (axis == 0)std::sort(begin, end, cmp_axis_x);
-		else if (axis == 1)std::sort(begin, end, cmp_axis_y);
-		else std::sort(begin, end, cmp_axis_z);
-		if (size <= 4)bvh.push_back(bvh_node(bbox, be, be + 1, be + 2, be + 3, size));
-		else {
-			uint n = bvh.size();
-			bvh.push_back(bvh_node(bbox, n + 1, 0, 0, 0, 5));
-			split_bvh(be, be + size / 4);
-			bvh[n].n2 = bvh.size();
-			split_bvh(be + size / 4, be + 2 * size / 4);
-			bvh[n].n3 = bvh.size();
-			split_bvh(be + 2 * size / 4, be + 3 * size / 4);
-			bvh[n].n4 = bvh.size();
-			split_bvh(be + 3 * size / 4, be + 4 * size / 4);
-		}
-	}
-
-#else
-
-	__forceinline bool hit_bvh(const ray& r, hitrec& rec, uint id = 0) const {
-		const bvh_node& node = bvh[id];
-		uchar flag = node.flag;
-		if (flag > 2)
+		if (node.flag)
 		{
 			bool h1 = bvh[node.n1].bbox.hit(r);
 			bool h2 = bvh[node.n2].bbox.hit(r);
@@ -122,43 +48,99 @@ public:
 			else if (h2)return hit_bvh(r, rec, node.n2);
 			else return false;
 		}
-		else if (flag <= 0)return false;
-		else if (flag <= 1)return bvh_obj[node.n1].hit(r, rec);
-		else if (flag <= 2)return bvh_obj[node.n1].hit(r, rec) + bvh_obj[node.n2].hit(r, rec);
-		else return false;
-
+		else{
+			bool hit = 0;
+			for (uint i = node.n1; i < node.n2; i++)
+				hit |= obj_bvh[i].hit(r, rec);
+			return hit;
+		}
 	}
-	void split_bvh(uint be, uint en) {
+	void rebuild_bvh(bool print = 0, uint node_size = 8) {
+		bvh.clear();
+		obj_bvh.clear();
+		build_bvh(print, node_size);
+	}
+	void obj_unroll() {
+		obj_bvh.reserve(4 * objects.size());
+		for (const auto& obj : objects)
+		{
+			switch (obj.id) {
+			case o_sph: {
+				vector<sphere> prim = obj.s.get_data();
+				for (const auto& pr : prim)
+					obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
+				break;
+			}
+			case o_qua: {
+				vector<quad> prim = obj.q.get_data();
+				for (const auto& pr : prim)
+					obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
+				break;
+			}
+			case o_tri: {
+				vector<tri> prim = obj.t.get_data();
+				for (const auto& pr : prim)
+					obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
+				break;
+			}
+			case o_vox: {
+				vector<voxel> prim = obj.v.get_data();
+				for (const auto& pr : prim)
+					obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
+				break;
+			}
+			default:break;
+			}
+
+		}
+	}
+	void build_bvh(bool print = 1, uint node_size = 8) {
+		obj_unroll();
+		bvh.reserve(2 * obj_bvh.size());
+		split_bvh(0, obj_bvh.size(), node_size);
+		if (print)
+			printf("\n%d\n", (int)bvh.size());
+	}
+
+	void split_bvh(uint be, uint en, uint node_size) {
 		aabb bbox = box_from(be, en);
 		uint size = en - be;
 		uint axis = bbox.get_longest_axis();
-		auto begin = bvh_obj.begin() + be;
-		auto end = bvh_obj.begin() + en;
+		auto begin = obj_bvh.begin() + be;
+		auto end = obj_bvh.begin() + en;
 		if (axis == 0)std::sort(begin, end, cmp_axis_x);
 		else if (axis == 1)std::sort(begin, end, cmp_axis_y);
 		else std::sort(begin, end, cmp_axis_z);
-		if (size <= 2)bvh.push_back(bvh_node(bbox, be, be + 1, size));
+		if (size <= node_size)bvh.push_back(bvh_node(bbox, be, en, 0));
 		else {
 			uint n = bvh.size();
-			bvh.push_back(bvh_node(bbox, n + 1, 0, 3));
-			split_bvh(be, be + size / 2);
+			bvh.push_back(bvh_node(bbox, n + 1, 0, 1));
+			split_bvh(be, be + size / 2, node_size);
 			bvh[n].n2 = bvh.size();
-			split_bvh(be + size / 2, be + size);
+			split_bvh(be + size / 2, be + size, node_size);
 		}
 	}
-
-#endif
-
-
+	aabb box_from(uint begin, uint end) {
+		aabb bbox = aabb();
+		for (uint i = begin; i < end; i++)
+		{
+			bbox.join(obj_bvh[i].get_box());
+		}
+		return bbox;
+	}
 	//Declarations
 	template <typename T>
 	void add(const T& object, uint mat, bool is_light = 0);
 	template <typename T>
 	void add(const vector<T>& object, uint mat, bool is_light = 0);
+	template <typename T>
+	void add(vec3 off, const T& object, uint mat, bool is_light = 0);
+	template <typename T>
+	void add(vec3 off, const vector<T>& object, uint mat, bool is_light = 0);
 	void clear();
 	obj_id get_id(const ray& r, hitrec& rec) const;
 	void get_trans(const obj_id id, matrix& T) const;
-	void set_trans(const obj_id id, const matrix& T);
+	void set_trans(const obj_id id, const matrix& T, uint node_size = 8);
 	void fit();
 	void add_mat(const albedo& tex, const mat_enum type) {
 		add_mat(mat_var(tex, type));
@@ -167,13 +149,13 @@ public:
 		materials.emplace_back(mat);
 	}
 private:
-	static bool cmp_axis_x(const mesh_var& a, const mesh_var& b) {
+	static bool cmp_axis_x(const mesh_raw& a, const mesh_raw& b) {
 		return a.get_box().pmax.x < b.get_box().pmax.x;
 	};
-	static bool cmp_axis_y(const mesh_var& a, const mesh_var& b) {
+	static bool cmp_axis_y(const mesh_raw& a, const mesh_raw& b) {
 		return a.get_box().pmax.y < b.get_box().pmax.y;
 	};
-	static bool cmp_axis_z(const mesh_var& a, const mesh_var& b) {
+	static bool cmp_axis_z(const mesh_raw& a, const mesh_raw& b) {
 		return a.get_box().pmax.z < b.get_box().pmax.z;
 	};
 	template <typename T>
@@ -183,11 +165,20 @@ private:
 		objects.emplace_back(object);
 		if (is_light) lights.emplace_back(objects.size() - 1), lw = 1.f / lights.size();
 	}
+	template <typename T>
+	void add(vec3 off, const mesh<T>& object, bool is_light)
+	{
+		mesh<T> tmp = object;
+		tmp.set_trans(matrix(off, 0));
+		bbox.join(tmp.get_box());
+		objects.emplace_back(tmp);
+		if (is_light) lights.emplace_back(objects.size() - 1), lw = 1.f / lights.size();
+	}
 public:
 	aabb bbox;
 	vector<uint> lights;
 	vector<mesh_var> objects;
-	vector<mesh_var> bvh_obj;
+	vector<mesh_raw> obj_bvh;
 	vector<bvh_node> bvh;
 	vector<mat_var> materials;
 	float lw;
@@ -201,5 +192,16 @@ template <typename T>
 void obj_list::add(const vector<T>& object, uint mat, bool is_light)
 {
 	add(mesh<T>(object, mat), is_light);
+}
+
+template <typename T>
+void obj_list::add(vec3 off, const T& object, uint mat, bool is_light)
+{
+	add(off, mesh<T>(object, mat), is_light);
+}
+template <typename T>
+void obj_list::add(vec3 off, const vector<T>& object, uint mat, bool is_light)
+{
+	add(off, mesh<T>(object, mat), is_light);
 }
 

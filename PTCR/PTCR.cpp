@@ -55,11 +55,13 @@ int main()
 	bool& moving = scn.cam.moving;
 	bool tap_to_focus = 0;
 	int scn_n = 1;
-	scn_load(scn, scn_n);
+	int node_size = 8;
+	scn_load(scn, scn_n, node_size);
 	printf("init done!!!\n");
 	matrix T;
 	vec3 TP = scn.sun_pos.P();
 	vec3 TA = scn.sun_pos.A;
+
 	while (running) {
 		frametime = SDL_GetPerformanceCounter();
 		SDL_RenderClear(renderer);
@@ -115,7 +117,8 @@ int main()
 			if (ImGui::SliderInt("Scene", &scn_n, 1, no_scn)) {
 				id = obj_id();
 				moving = 1;
-				scn_load(scn,scn_n);
+				node_size = 8;
+				scn_load(scn,scn_n, node_size);
 			}
 			ImGui::DragFloat("Speed", &scn.cam.speed, 0.001, 0.001, 1e3f, "% .2f");
 			if (ImGui::DragFloat("FOV", &scn.cam.fov, 0.1, 0.001, 179, "%.1f"))
@@ -181,6 +184,12 @@ int main()
 
 
 			ImGui::Begin("Object properties");
+			
+			if (ImGui::InputInt("BVH Nodes", &node_size, 1, 1)) {
+				node_size = node_size <= 1 ? 1 : node_size;
+				node_size = node_size >= 64 ? 64 : node_size;
+				scn.world.rebuild_bvh(1, node_size);
+			}
 			ImGui::Text("ID: %d, Type: %d", id.id, id.type);
 			if (id.type != o_bla) {
 				albedo& alb = scn.world.materials[scn.world.objects[id.id].get_mat()].tex;
@@ -198,13 +207,13 @@ int main()
 			if (ImGui::DragFloat3("Pos", TP._xyz, 0.01))
 			{
 				T.set_P(TP);
-				scn.set_trans(id, T);
+				scn.set_trans(id, T, node_size);
 				moving = 1;
 			}
 			if (ImGui::DragFloat3("Rot", TA._xyz, 0.01))
 			{
 				T.set_A(TA);
-				scn.set_trans(id, T);
+				scn.set_trans(id, T, node_size);
 				moving = 1;
 			}
 			ImGui::End();

@@ -54,7 +54,7 @@ public:
 		return pdf / dp;
 	}
 	inline vec3 generate() const {
-		//simplify sun projection as simple cone samppling
+		//simplify sun projection as simple cone sampling
 		vec3 r = sa_disk();
 		vec3 V = T * norm(vec3(r[0], sun_angle, r[1]));
 		return V;

@@ -2,6 +2,7 @@
 void obj_list::clear()
 {
 	bvh.clear();
+	obj_bvh.clear();
 	objects.clear();
 	lights.clear();
 	materials.clear();
@@ -19,10 +20,10 @@ void obj_list::get_trans(const obj_id id, matrix& T)const
 {
 	T = objects[id.id].get_trans();
 }
-void obj_list::set_trans(obj_id id, const matrix& T) {
+void obj_list::set_trans(obj_id id, const matrix& T, uint node_size) {
 	objects[id.id].set_trans(T);
 	fit();
-	rebuild_bvh();
+	rebuild_bvh(0,node_size);
 }
 void obj_list::fit() {
 	bbox = aabb();

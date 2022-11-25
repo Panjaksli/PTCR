@@ -67,6 +67,14 @@ public:
 		v.w = u.w;
 		return v;
 	}
+	inline vec3 trans_rot(vec3 u)const {
+		vec3 v;
+		v.x = dot(u, R[0]);
+		v.y = dot(u, R[1]);
+		v.z = dot(u, R[2]);
+		v.w = 0;
+		return v;
+	}
 	vec3 R[3], A;
 };
 inline matrix operator+(matrix T1,const matrix& T2) {

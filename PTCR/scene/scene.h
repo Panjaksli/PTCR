@@ -38,7 +38,7 @@ public:
 	obj_id get_id(float py, float px, matrix& T) const;
 	void cam_autofocus();
 	void cam_manufocus(float py = 0, float px = 0);
-	void set_trans(obj_id id, const matrix& T);
+	void set_trans(obj_id id, const matrix& T, uint node_size = 8);
 	void render(uint* disp, uint pitch);
 private:
 	inline vec3 raycol_at(const ray& r)const {
@@ -170,7 +170,7 @@ __forceinline  vec3 scene::sample_recursive(const ray& r, const hitrec& rec, int
 	world.materials[rec.mat].sample(r, rec, mat);
 	if (mat.sd) {
 		if (mat.sd == 1)
-			aten += mat.scat * path_trace(ray(mat.P, mat.L), depth - 1);
+			aten += mat.scat * path_trace(ray(mat.P, mat.L, true), depth - 1);
 		else
 		{
 			ray R; float p1, p2;
@@ -195,7 +195,7 @@ __forceinline  vec3 scene::sample_iterative(const ray& sr, const hitrec& srec, i
 		if (mat.sd)
 		{
 			if (mat.sd == 1)
-				r = ray(mat.P, mat.L);
+				r = ray(mat.P, mat.L, true);
 			else
 			{
 				float p1, p2;

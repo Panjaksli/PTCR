@@ -31,7 +31,7 @@ obj_id scene::get_id(float py, float px, matrix& T) const
 	return id;
 }
 
-void scene::set_trans(obj_id id, const matrix& T) {
+void scene::set_trans(obj_id id, const matrix& T, uint node_size) {
 	if (id.type == o_bla)
 	{
 		//if nothing hit, transform sky
@@ -40,7 +40,7 @@ void scene::set_trans(obj_id id, const matrix& T) {
 	}
 	else
 	{
-		world.set_trans(id, T);
+		world.set_trans(id, T,node_size);
 	}
 }
 

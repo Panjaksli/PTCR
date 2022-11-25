@@ -43,3 +43,4 @@ using std::atan2;
 using std::acos;
 using std::asin;
 using std::cout;
+#define println cout<<"\n"

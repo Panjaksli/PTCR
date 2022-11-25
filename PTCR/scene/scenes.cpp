@@ -2,8 +2,6 @@
 bool en_bvh = 1;
 void scn1(scene& scn) {
 	scn.world.clear();
-	/*albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 2e2);
-	albedo snow = albedo(texture("snow.png"), texture("snow_mer.png"), texture("snow_normal.png"), 2e3);*/
 	albedo gnd(vec3(0.8, 0.4, 0.3, 1), vec3(0, 0, 0));
 	albedo trans(vec3(0.7, 0.7, 0.99, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
 	albedo trans2(vec3(0.99, 0.7, 0.7, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
@@ -54,12 +52,13 @@ void scn2(scene& scn) {
 }
 void scn3(scene& scn) {
 	scn.world.clear();
-	//for (int k = 0; k <= 10; k++)
+	
 	for (int i = 0; i <= 10; i++) {
 		for (int j = 0; j <= 10; j++) {
 			albedo pbrcol(vec3(0.9f, 0.6f, 0.), vec3(0.1 * i, 0, 0.1 * j), vec3(0.5, 0.5, 1), 10);
-			scn.world.add_mat(pbrcol, mat_vnd);
-			scn.world.add(sphere(vec3(6 - j, 6 - i, -3, 0.5)), i * 11 + j);
+			scn.world.add_mat(pbrcol, mat_ggx);
+			for (int k = 0; k <= 10; k++)
+			scn.world.add(sphere(vec3(6 - j, 6 - i, -3 - k, 0.5)), i * 11 + j);
 		}
 	}
 	scn.opt = options();
@@ -121,4 +120,23 @@ void scn5(scene& scn) {
 	scn.opt.i_life = 1.f / 0.9f;
 	scn.cam.setup(matrix(vec3(l/2, 0.2f, l),vec3(0)), 40, 16.f);
 	en_bvh = 0;
+}
+void scn6(scene& scn) {
+	scn.world.clear();
+
+	albedo blue(vec3(0.1, 0.1, 0.8, 1), vec3(1, 0, 0.1));
+	scn.world.add_mat(blue, mat_ggx);
+
+	vector<tri> gourd = load_OBJ("gourd.obj", vec3(0, 0, -3),1.f);
+	for (int i = 0; i < 10; i++)
+		for(int j = 0 ; j < 10 ; j++)
+		scn.world.add(vec3(3*j-5,3*i-5,-5), gourd, 0);
+	scn.opt = options();
+	scn.cam.exposure = 1.f;
+	scn.sun_pos.set_A(vec3(1, 0, 0.32));
+	scn.opt.bounces = 10;
+	scn.opt.p_life = 0.9f;
+	scn.opt.i_life = 1.f / 0.9f;
+	scn.cam.setup(matrix(vec3(0, 1.7, 1), vec3(0, 0, 0)), 70, 1.f);
+	en_bvh = 1;
 }

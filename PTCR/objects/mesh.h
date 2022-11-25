@@ -3,19 +3,26 @@
 #include "tri.h"
 #include "quad.h"
 #include "voxel.h"
+#include<iostream>
+#include<string>
+#include<fstream>
+#include<vector>
+#include<sstream>
+#include<algorithm>
+
 #pragma pack(push, 4)
 template <class primitive>
 class mesh {
 public:
 	mesh() {}
-	mesh(const primitive& _prim, uint _mat) :prim(new primitive[1]{_prim}), mat(_mat), size(1), lw(1.f) {
+	mesh(const primitive& _prim, uint _mat) :prim(new primitive[1]{ _prim }), mat(_mat), size(1), lw(1.f) {
 		fit();
 	}
-	mesh(const vector<primitive> &_prim, uint _mat) :prim(new primitive[_prim.size()]), mat(_mat), size(_prim.size()), lw(1.f / size) {
+	mesh(const vector<primitive>& _prim, uint _mat) :prim(new primitive[_prim.size()]), mat(_mat), size(_prim.size()), lw(1.f / size) {
 		memcpy(prim, &_prim[0], size * sizeof(primitive));
 		fit();
 	}
-	mesh(const mesh& cpy) : bbox(cpy.bbox),P(cpy.P),A(cpy.A),prim(new primitive[cpy.size]), mat(cpy.mat), size(cpy.size), lw(cpy.lw) {
+	mesh(const mesh& cpy) : bbox(cpy.bbox), P(cpy.P), A(cpy.A), prim(new primitive[cpy.size]), mat(cpy.mat), size(cpy.size), lw(cpy.lw) {
 		memcpy(prim, cpy.prim, size * sizeof(primitive));
 	}
 	const mesh& operator=(const mesh& cpy) {
@@ -31,23 +38,27 @@ public:
 		if (size == 1)
 		{
 			bool hit = prim[0].hit(r, rec);
-			if(hit)rec.mat = mat;
+			if (hit)rec.mat = mat;
 			return hit;
 		}
 		bool hit = false;
 		for (uint i = 0; i < size; i++)
 			hit |= prim[i].hit(r, rec);
-		if(hit)rec.mat = mat;
+		if (hit)rec.mat = mat;
 		return hit;
 	}
 	inline matrix get_trans()const {
-		return matrix(P,A);
+		return matrix(P, A);
 	}
 	inline void set_trans(const matrix& _T) {
-		matrix dT(_T.P()-P,_T.A-A);
+		matrix dT1(-P);
+		matrix dT2(0, _T.A - A);
+		matrix dT3(_T.P(), 0);
 		P = _T.P();
 		A = _T.A;
-		build_cache(dT);
+		transform(dT1);
+		transform(dT2);
+		build_cache(dT3);
 	}
 	inline aabb get_box()const { return bbox; }
 	__forceinline float pdf(const ray& r)const {
@@ -69,13 +80,26 @@ public:
 		uint id = raint(size - 1);
 		return prim[id].rand_from();
 	}
+	inline vector<primitive> get_data()const {
+		vector<primitive> data;
+		data.reserve(size);
+		for (uint i = 0; i < size; i++)
+			data.push_back(prim[i]);
+		return data;
+	}
 	inline uint get_mat()const {
 		return mat;
 	}
+	inline uint get_size()const {
+		return size;
+	}
 private:
-	inline void build_cache(const matrix& dT) {
+	inline void transform(const matrix& dT) {
 		for (uint i = 0; i < size; i++)
 			prim[i] = prim[i].trans(dT);
+	}
+	inline void build_cache(const matrix& dT) {
+		transform(dT);
 		fit();
 	}
 	inline void fit() {
@@ -88,6 +112,7 @@ private:
 	inline void clean() {
 		delete[]prim;
 	}
+
 	aabb bbox;
 	vec3 P, A;
 	primitive* prim;
@@ -103,18 +128,18 @@ using vmesh = mesh<voxel>;
 
 
 struct mesh_var {
-	mesh_var(const smesh &m) :s(m), id(o_sph) {}
-	mesh_var(const qmesh &m) :q(m), id(o_qua) {}
-	mesh_var(const tmesh &m) :t(m), id(o_tri) {}
-	mesh_var(const vmesh &m) :v(m), id(o_vox) {}
-	mesh_var(const mesh_var& cpy):id(cpy.id) {
+	mesh_var(const smesh& m) :s(m), id(o_sph) {}
+	mesh_var(const qmesh& m) :q(m), id(o_qua) {}
+	mesh_var(const tmesh& m) :t(m), id(o_tri) {}
+	mesh_var(const vmesh& m) :v(m), id(o_vox) {}
+	mesh_var(const mesh_var& cpy) :id(cpy.id) {
 		switch (id) {
 		case o_sph: s = cpy.s; break;
 		case o_qua: q = cpy.q; break;
 		case o_tri: t = cpy.t; break;
 		case o_vox:	v = cpy.v; break;
 		case o_bla:
-		case o_bvh:
+
 		default:break;
 		}
 	}
@@ -126,7 +151,7 @@ struct mesh_var {
 		case o_tri: t = cpy.t; break;
 		case o_vox:	v = cpy.v; break;
 		case o_bla:
-		case o_bvh:
+
 		default:break;
 		}
 		return *this;
@@ -139,7 +164,7 @@ struct mesh_var {
 		case o_tri: t.~mesh(); break;
 		case o_vox:	v.~mesh(); break;
 		case o_bla:
-		case o_bvh:
+
 		default:break;
 		}
 	}
@@ -155,10 +180,11 @@ struct mesh_var {
 		case o_tri: return t.hit(r, rec);
 		case o_vox: return v.hit(r, rec);
 		case o_bla:
-		case o_bvh:
+
 		default: return false;
 		}
 	}
+
 	matrix get_trans()const {
 		switch (id) {
 		case o_sph: return s.get_trans();
@@ -166,7 +192,7 @@ struct mesh_var {
 		case o_tri: return t.get_trans();
 		case o_vox: return v.get_trans();
 		case o_bla:
-		case o_bvh:
+
 		default: return matrix();
 		}
 	}
@@ -177,9 +203,12 @@ struct mesh_var {
 		case o_tri: t.set_trans(T); break;
 		case o_vox: v.set_trans(T); break;
 		case o_bla:
-		case o_bvh:
+
 		default: break;
 		}
+	}
+	inline uint get_size()const {
+		return s.get_size();
 	}
 	inline aabb get_box()const {
 		return s.get_box();
@@ -192,7 +221,7 @@ struct mesh_var {
 		case o_tri: return t.pdf(r);
 		case o_vox: return v.pdf(r);
 		case o_bla:
-		case o_bvh:
+
 		default: return 0;
 		}
 	}
@@ -203,7 +232,7 @@ struct mesh_var {
 		case o_tri: return t.rand_to(O);
 		case o_vox: return v.rand_to(O);
 		case o_bla:
-		case o_bvh:
+
 		default: return 0;
 		}
 	}
@@ -214,7 +243,7 @@ struct mesh_var {
 		case o_tri: return t.rand_from();
 		case o_vox: return v.rand_from();
 		case o_bla:
-		case o_bvh:
+
 		default: return 0;
 		}
 	}
@@ -226,4 +255,162 @@ struct mesh_var {
 	};
 	obj_enum id;
 };
+
+
+struct mesh_raw {
+	mesh_raw(const tri& m, uint mat) :t(m), bbox(m.get_box()), mat(mat), id(o_tri) {}
+	mesh_raw(const quad& m, uint mat) :q(m), bbox(m.get_box()), mat(mat), id(o_qua) {}
+	mesh_raw(const sphere& m, uint mat) :s(m), bbox(m.get_box()), mat(mat), id(o_sph) {}
+	mesh_raw(const voxel& m, uint mat) :v(m), bbox(m.get_box()), mat(mat), id(o_vox) {}
+	mesh_raw(const mesh_raw& cpy) :bbox(cpy.bbox),mat(cpy.mat), id(cpy.id) {
+		switch (id) {
+		case o_tri: t = cpy.t; break;
+		case o_qua: q = cpy.q; break;
+		case o_sph: s = cpy.s; break;
+		case o_vox:	v = cpy.v; break;
+		case o_bla:
+		default:break;
+		}
+	}
+	const mesh_raw& operator=(const mesh_raw& cpy) {
+		bbox = cpy.bbox;
+		mat = cpy.mat;
+		id = cpy.id;
+		switch (id) {
+		case o_tri: t = cpy.t; break;
+		case o_qua: q = cpy.q; break;
+		case o_sph: s = cpy.s; break;
+		case o_vox:	v = cpy.v; break;
+		case o_bla:
+		default:break;
+		}
+		return *this;
+	}
+
+	__forceinline bool hit(const ray& r, hitrec& rec) const
+	{
+		if (!bbox.hit(r))return false;
+		bool hit = 0;
+		if (id == o_tri)hit = t.hit(r, rec);
+		else if (id == o_qua)hit = q.hit(r, rec);
+		else if (id == o_sph)hit = s.hit(r, rec);
+		else if (id == o_vox)hit = v.hit(r, rec);
+		else hit = false;
+		if (hit)rec.mat = mat;
+		return hit;
+	}
+
+	inline aabb get_box()const {
+		return bbox;
+	}
+
+	union {
+		tri t;
+		quad q;
+		sphere s;
+		voxel v;
+	};
+	aabb bbox;
+	uint mat;
+	obj_enum id;
+};
 #pragma pack(pop)
+
+
+inline std::vector<tri> load_OBJ(const char* name, vec3 off = 0, float scale = 1.f)
+{
+	struct xyz {
+		xyz() {}
+		union {
+			uint all[3] = {};
+			struct {
+				uint x, y, z;
+			};
+		};
+
+
+	};
+	//Vertex portions
+	std::vector<vec3> v;
+	std::vector<vec3> vt;
+	std::vector<vec3> vn;
+
+	//Face vectors
+	std::vector<xyz> fv;
+	std::vector<xyz> ft;
+	std::vector<xyz> fn;
+
+	//Vertex array
+	std::vector<tri> tris;
+
+	std::stringstream ss;
+	std::ifstream file(name);
+	std::string line = "";
+	std::string pref = "";
+
+	if (!file.is_open())
+	{
+		throw "File not found !";
+	}
+
+	while (std::getline(file, line))
+	{
+		ss.clear();
+		ss.str(line);
+		ss >> pref;
+		if (pref == "#");
+		else if (pref == "o");
+		else if (pref == "s");
+		else if (pref == "use_mtl");
+		else if (pref == "v")
+		{
+			vec3 tmp;
+			ss >> tmp.x >> tmp.y >> tmp.z;
+			v.push_back(tmp);
+		}
+		else if (pref == "vt")
+		{
+			vec3 tmp;
+			ss >> tmp.x >> tmp.y;
+			vt.push_back(tmp);
+		}
+		else if (pref == "vn")
+		{
+			vec3 tmp;
+			ss >> tmp.x >> tmp.y >> tmp.z;
+			vn.push_back(tmp);
+		}
+		else if (pref == "f")
+		{
+			int cnt = 0;
+			int tmp = 0;
+			xyz buff = {};
+			while (ss >> tmp)
+			{
+				buff.all[cnt] = tmp - 1;
+				if (ss.peek() == ' ')
+				{
+					++cnt;
+					ss.ignore(1, ' ');
+				}
+			}
+
+			fv.push_back(buff);
+		}
+		else;
+	}
+	tris.resize(fv.size(), tri());
+	for (size_t i = 0; i < fv.size(); i++)
+	{
+		vec3 a = scale * v[fv[i].x];
+		vec3 b = scale * v[fv[i].y];
+		vec3 c = scale * v[fv[i].z];
+		tris[i] = tri(a, b, c);
+	}
+
+	std::cout << "Succesfully loaded obj" << "\n";
+	std::cout << "No of tris: " << tris.size() << "\n";
+	//Loaded success
+
+	return tris;
+}
