@@ -26,7 +26,7 @@ public:
 		}
 	}
 	inline void pad() {
-		vec3 delta = (0.5f * eps) * vec3(fabs(pmax.x - pmin.x) < eps, fabs(pmax.y - pmin.y) < eps, fabs(pmax.z - pmin.z) < eps);
+		vec3 delta = (0.5f * eps) * vec_lt(fabs(pmax-pmin),eps);
 		pmin -= delta;
 		pmax += delta;
 	}
@@ -41,8 +41,8 @@ public:
 	inline uchar get_longest_axis() const{
 		vec3 x = abs(pmax - pmin);
 		uchar axis = 0;
-		if (x.y > x.x) axis = 1;
-		if (x.z > x[axis]) axis = 2;
+		if (x.y() > x.x()) axis = 1;
+		if (x.z() > x[axis]) axis = 2;
 		return axis;
 	}
 	void print()const {

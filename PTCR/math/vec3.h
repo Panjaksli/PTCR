@@ -64,7 +64,7 @@ inline vec3 refract(vec3 v, vec3 n, float eta) {
 inline vec3 normal(vec3 u, vec3 v) {
 	vec3 uv = cross(u, v);
 	vec3 N = norm(uv);
-	N.w = uv.len();
+	N.xyz[3] = uv.len();
 	return N;
 }
 
@@ -105,19 +105,19 @@ inline float luminance(vec3 rgb)
 
 inline void rgb(vec3 col, uint& rgb)
 {
-	col /= col.w;
+	col /= col.w();
 #if GAMMA2
 	col = sqrt(col);
 #endif
 	col = saturate(col);
 	col *= 255.f;
 	col += 0.5f * ravec();
-	rgb = pack_rgb(col.x, col.y, col.z);
+	rgb = pack_rgb(col.x(), col.y(), col.z());
 }
 inline void bgr(vec3 col, uint& bgr)
 {
 	//divide by pixels sample count
-	col /= col.w;
+	col /= col.w();
 #if GAMMA2
 	//gamma correction to srgb
 	col = sqrt(col);
@@ -129,15 +129,15 @@ inline void bgr(vec3 col, uint& bgr)
 	//deband
 	col += 0.5f * ravec();
 	//store to bgr
-	bgr = pack_bgr(col.x, col.y, col.z);
+	bgr = pack_bgr(col.x(), col.y(), col.z());
 }
 
 inline vec3 unrgb(const uint& rgb) {
 	vec3 v;
-	v.x = rgb & 0x000000ff;
-	v.y = (rgb >> 8) & 0x000000ff;
-	v.z = (rgb >> 16) & 0x000000ff;
-	v.w = (rgb >> 24) & 0x000000ff;
+	v.xyz[0] = rgb & 0x000000ff;
+	v.xyz[1] = (rgb >> 8) & 0x000000ff;
+	v.xyz[2] = (rgb >> 16) & 0x000000ff;
+	v.xyz[3] = (rgb >> 24) & 0x000000ff;
 	return v * (1.f / 255.f);
 }
 

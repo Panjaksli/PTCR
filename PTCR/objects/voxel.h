@@ -23,20 +23,20 @@ public:
 		vec3 tmax = max(t1, t2);
 		float mint = max(tmin);
 		float maxt = min(tmax);
-		if (mint > maxt) return false;
+		if (mint > maxt || maxt <= 0) return false;
 		bool face = mint > 0;
 		float t = face ? mint : maxt;
 		if (inside(t, eps2, rec.t))
 		{
 			vec3 P = r.at(t);
-			vec3 W = (P - Qa) / Qa.w;
+			vec3 W = (P - Qa) / Qa.w();
 			vec3 N = norm(toint(1.00001f * W));
 			vec3 UV = 0.5f * (1.f + W - N);
 			rec.N = face ? N : -N;
 			rec.P = r.at(t);
 			rec.t = t;
-			rec.u = fabs(UV.x - 0.5f) > eps2 ? UV.x : UV.z;
-			rec.v = fabs(UV.y - 0.5f) > eps2 ? UV.y : UV.z;
+			rec.u = fabs(UV.x() - 0.5f) > eps2 ? UV.x() : UV.z();
+			rec.v = fabs(UV.y() - 0.5f) > eps2 ? UV.y() : UV.z();
 			rec.face = face;
 			return true;
 		}
@@ -45,7 +45,7 @@ public:
 	inline float pdf(const ray& r)const {
 		hitrec rec;
 		if (!hit(r, rec))return 0;
-		float S = 4 * Qa.w * Qa.w;
+		float S = 4.f * Qa.w() * Qa.w();
 		float NoL = absdot(r.D, rec.N);
 		if (!rec.face)return rec.t * rec.t / (6.f * S * NoL);
 		else {
@@ -72,10 +72,10 @@ public:
 			//smaller waste of rejection sampling, pick one side, than eventually rotate to all 6
 			//gotta choose rotated side randomly to get unbiased results; left or right depending on beginning condition
 			for (int i = 0; i < 3; i++) {
-				vec3 P = Qa + Qa.w * W;
+				vec3 P = Qa + Qa.w() * W;
 				vec3 L = P - O;
 				if (inside || dot(L, N) < 0) return norm(L);
-				P = Qa - Qa.w * W;
+				P = Qa - Qa.w() * W;
 				L = P - O;
 				if (dot(L, N) > 0) return norm(L);
 				W = dir ? rotl3(W) : rotr3(W);
@@ -85,10 +85,10 @@ public:
 			vec3 r = ravec();
 			vec3 W = r / max(fabs(r));
 			vec3 N = toint(1.00001f * W);
-			vec3 P = Qa + Qa.w * W;
+			vec3 P = Qa + Qa.w() * W;
 			vec3 L = P - O;
 			if (inside || dot(L, N) < 0)return norm(L);
-			P = Qa - Qa.w * W;
+			P = Qa - Qa.w() * W;
 			L = P - O;
 			if (dot(L, N) > 0)return norm(L);
 #endif
@@ -102,9 +102,9 @@ public:
 	vec4 Qa;
 private:
 	inline vec3 A()const {
-		return Qa - Qa.w;
+		return Qa - Qa.w();
 	}
 	inline vec3 B()const {
-		return Qa + Qa.w;
+		return Qa + Qa.w();
 	}
 };

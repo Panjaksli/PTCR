@@ -41,6 +41,11 @@ public:
 	void set_trans(obj_id id, const matrix& T, uint node_size = 8);
 	void render(uint* disp, uint pitch);
 private:
+	inline vec3 raycol_face(const ray& r)const {
+		hitrec rec;
+		if (!world.hit(r, rec)) return 0.5;
+		return rec.face;
+	}
 	inline vec3 raycol_at(const ray& r)const {
 		hitrec rec; matrec mat;
 		if (!world.hit(r, rec)) return 0;
@@ -149,8 +154,8 @@ private:
 		vec3 A = sun_pos * vec3(0, 1, 0);
 		float dp = posdot(V, A);
 		float dp2 = 0.5f * (1.f + dot(V, A));
-		float ip = 1.f - fabsf(A.y);
-		float mp = 0.5f * (A.y + 1.f);
+		float ip = 1.f - fabsf(A.y());
+		float mp = 0.5f * (A.y() + 1.f);
 		vec3 skycol = (pow2n(mp, 2) + 0.001f) * mix(vec3(0.0529, 0.1632, 0.445), vec3(0.152, 0.0384, 0.05), ip * ip);
 		vec3 suncol = mix(vec3(300, 210, 90), vec3(80, 8, 4), ip * ip);
 		skycol = mix(skycol * 0.5f, 2.f * skycol, dp2);

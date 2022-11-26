@@ -76,7 +76,10 @@ public:
 		return prim[id].rand_from();
 	}
 	inline vector<primitive> get_data()const {
-		return vector<primitive>(prim,prim+size);
+		return vector<primitive>(prim, prim + size);
+	}
+	inline primitive* get_data(uint i) {
+		return &(prim[i]);
 	}
 	inline uint get_mat()const {
 		return mat;
@@ -249,11 +252,11 @@ struct mesh_var {
 
 
 struct mesh_raw {
-	mesh_raw(const tri& m, uint mat) :t(m), bbox(m.get_box()), mat(mat), id(o_tri) {}
-	mesh_raw(const quad& m, uint mat) :q(m), bbox(m.get_box()), mat(mat), id(o_qua) {}
-	mesh_raw(const sphere& m, uint mat) :s(m), bbox(m.get_box()), mat(mat), id(o_sph) {}
-	mesh_raw(const voxel& m, uint mat) :v(m), bbox(m.get_box()), mat(mat), id(o_vox) {}
-	mesh_raw(const mesh_raw& cpy) :bbox(cpy.bbox),mat(cpy.mat), id(cpy.id) {
+	mesh_raw(tri* m, uint mat) : bbox(m->get_box()), t(m), mat(mat), id(o_tri) {}
+	mesh_raw(quad* m, uint mat) : bbox(m->get_box()), q(m), mat(mat), id(o_qua) {}
+	mesh_raw(sphere* m, uint mat) : bbox(m->get_box()), s(m), mat(mat), id(o_sph) {}
+	mesh_raw(voxel* m, uint mat) :bbox(m->get_box()), v(m), mat(mat), id(o_vox) {}
+	mesh_raw(const mesh_raw& cpy) :bbox(cpy.bbox), mat(cpy.mat), id(cpy.id) {
 		switch (id) {
 		case o_tri: t = cpy.t; break;
 		case o_qua: q = cpy.q; break;
@@ -282,10 +285,10 @@ struct mesh_raw {
 	{
 		if (!bbox.hit(r))return false;
 		bool hit = 0;
-		if (id == o_tri)hit = t.hit(r, rec);
-		else if (id == o_qua)hit = q.hit(r, rec);
-		else if (id == o_sph)hit = s.hit(r, rec);
-		else if (id == o_vox)hit = v.hit(r, rec);
+		if (id == o_tri)hit = t[0].hit(r, rec);
+		else if (id == o_qua)hit = q[0].hit(r, rec);
+		else if (id == o_sph)hit = s[0].hit(r, rec);
+		else if (id == o_vox)hit = v[0].hit(r, rec);
 		else hit = false;
 		if (hit)rec.mat = mat;
 		return hit;
@@ -295,13 +298,13 @@ struct mesh_raw {
 		return bbox;
 	}
 
-	union {
-		tri t;
-		quad q;
-		sphere s;
-		voxel v;
-	};
 	aabb bbox;
+	union {
+		tri* t;
+		quad* q;
+		sphere* s;
+		voxel* v;
+	};
 	uint mat;
 	obj_enum id;
 };

@@ -9,7 +9,7 @@ public:
 	//Definitions
 
 	__forceinline bool hit(const ray& r, hitrec& rec) const {
-		
+
 		if (!bbox.hit(r)) return false;
 		bool hit = false;
 		for (auto& obj : skp_bvh)hit |= obj.hit(r, rec);
@@ -24,21 +24,17 @@ public:
 		return hit;
 	}
 	__forceinline float pdf(const ray& r)const {
-		if (!bbox.hit(r))return 0;
-		if (lights.size() == 1)return skp_bvh[lights[0]].pdf(r);
 		float y = 0.f;
 		for (const auto& light : lights)
 			y += lw * skp_bvh[light].pdf(r);
 		return y;
 	}
 	__forceinline vec3 rand_to(vec3 O) const {
-		if (lights.size() == 1)return skp_bvh[lights[0]].rand_to(O);
 		uint id = raint(lights.size() - 1);
 		const uint light = lights[id];
 		return skp_bvh[light].rand_to(O);
 	}
 	__forceinline vec3 rand_from() const {
-		if (lights.size() == 1)return skp_bvh[lights[0]].rand_from();
 		uint id = raint(lights.size() - 1);
 		uint light = lights[id];
 		return skp_bvh[light].rand_from();
@@ -50,12 +46,12 @@ public:
 		{
 			bool h1 = bvh[node.n1].bbox.hit(r);
 			bool h2 = bvh[node.n2].bbox.hit(r);
-			if (h1 && h2) return hit_bvh(r, rec, node.n1) + hit_bvh(r, rec, node.n2);
+			if (h1 && h2)return hit_bvh(r, rec, node.n1) + hit_bvh(r, rec, node.n2);
 			else if (h1)return hit_bvh(r, rec, node.n1);
 			else if (h2)return hit_bvh(r, rec, node.n2);
 			else return false;
 		}
-		else{
+		else {
 			bool hit = 0;
 			for (uint i = node.n1; i < node.n2; i++)
 				hit |= obj_bvh[i].hit(r, rec);
@@ -89,18 +85,18 @@ public:
 	aabb box_from(uint begin, uint end);
 
 
-	
+
 private:
-	
+
 	template <typename T>
 	void add(const mesh<T>& object, bool skip_bvh = 0, bool is_light = 0)
 	{
 		if (is_light || skip_bvh) {
-		skp_bvh.emplace_back(object);
-		if (is_light) lights.emplace_back(skp_bvh.size() - 1), lw = 1.f / lights.size();
+			skp_bvh.emplace_back(object);
+			if (is_light) lights.emplace_back(skp_bvh.size() - 1), lw = 1.f / lights.size();
 		}
 		else {
-		objects.emplace_back(object);
+			objects.emplace_back(object);
 		}
 		bbox.join(object.get_box());
 	}
@@ -112,13 +108,13 @@ private:
 		add(tmp, skip_bvh, is_light);
 	}
 	static bool cmp_axis_x(const mesh_raw& a, const mesh_raw& b) {
-		return a.bbox.pmax.x < b.bbox.pmax.x;
+		return a.get_box().pmid().x() < b.get_box().pmid().x();
 	};
 	static bool cmp_axis_y(const mesh_raw& a, const mesh_raw& b) {
-		return a.bbox.pmax.y < b.bbox.pmax.y;
+		return a.get_box().pmid().y() < b.get_box().pmid().y();
 	};
 	static bool cmp_axis_z(const mesh_raw& a, const mesh_raw& b) {
-		return a.bbox.pmax.z < b.bbox.pmax.z;
+		return a.get_box().pmid().z() < b.get_box().pmid().z();
 	};
 public:
 	aabb bbox;
@@ -131,7 +127,7 @@ public:
 	float lw;
 };
 template <typename T>
-void obj_list::add(const T& object, uint mat, bool skip_bvh , bool is_light)
+void obj_list::add(const T& object, uint mat, bool skip_bvh, bool is_light)
 {
 	add(mesh<T>(object, mat), skip_bvh, is_light);
 }

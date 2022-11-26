@@ -9,7 +9,7 @@ public:
 	sphere(vec4 _Qr) :Qr(_Qr) {}
 
 	inline aabb get_box()const {
-		return aabb(Qr - Qr.w, Qr + Qr.w);
+		return aabb(Qr - Qr.w(), Qr + Qr.w());
 	}
 
 	inline sphere trans(const matrix& T) const {
@@ -20,7 +20,7 @@ public:
 	{
 		vec3 OC = r.O - Qr;
 		float b = -dot(r.D, OC);
-		float c = dot(OC, OC) - Qr.w * Qr.w;
+		float c = dot(OC, OC) - Qr.w() * Qr.w();
 		float d2 = b * b - c;
 		float d = sqrtf(d2);
 		float t1 = b - d;
@@ -28,13 +28,13 @@ public:
 		float t = minp(t1, t2);
 		if (inside(t, eps2, rec.t)){
 			vec3 P = r.at(t);
-			vec3 N = (P - Qr) / Qr.w;
+			vec3 N = (P - Qr) / Qr.w();
 			bool face = dot(r.D,N) < 0;
 			rec.N = face ? N : -N;
 			rec.P = P;
 			rec.t = t;
-			rec.u = (fatan2(-N.z, N.x) + pi) * ipi2;
-			rec.v = facos(-N.y) * ipi;
+			rec.u = (fatan2(-N.z(), N.x()) + pi) * ipi2;
+			rec.v = facos(-N.y()) * ipi;
 			rec.face = face;
 			return true;
 		}
@@ -45,13 +45,13 @@ public:
 		if (!hit(r, rec))return 0;
 		if (!rec.face)
 		{
-			float S = pi4 * Qr.w * Qr.w;
+			float S = pi4 * Qr.w() * Qr.w();
 			float NoL = absdot(rec.N, r.D);
 			return rec.t * rec.t / (S * NoL);
 		}
 		else {
 			//propability according to sampled cone
-			float theta = sqrtf(1.f - Qr.w * Qr.w / (Qr - r.O).len2());
+			float theta = sqrtf(1.f - Qr.w() * Qr.w() / (Qr - r.O).len2());
 			return  1.f / (pi2 * (1.f - theta));
 		}
 		return 0;
@@ -62,12 +62,12 @@ public:
 		*/
 		vec3 dir = Qr - O;
 		float d2 = dir.len2();
-		float R2 = Qr.w * Qr.w;
+		float R2 = Qr.w() * Qr.w();
 		//if inside, pick uniform coordinate
 		if (d2 <= R2)
 		{
 			vec3 N = sa_sph();
-			vec3 P = Qr + N * Qr.w;
+			vec3 P = Qr + N * Qr.w();
 			vec3 L = P - O;
 			return norm(L);
 		}
@@ -80,7 +80,7 @@ public:
 	}
 	inline vec3 rand_from() const {
 		vec3 R = sa_sph();
-		//vec3 P = Qr + R * Qr.w;
+		//vec3 P = Qr + R * Qr.w();
 		return onb(R).world(sa_cos());
 	}
 private:

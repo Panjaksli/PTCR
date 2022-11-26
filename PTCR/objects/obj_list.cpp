@@ -53,33 +53,15 @@ void obj_list::obj_unroll() {
 	for (const auto& obj : objects)
 		size += obj.get_size();
 	obj_bvh.reserve(size);
-	for (const auto& obj : objects)
+	for (auto& obj : objects)
 	{
+		uint mat = obj.get_mat();
+		for (uint i = 0; i < obj.get_size(); i++)
 		switch (obj.id) {
-		case o_sph: {
-			vector<sphere> prim = obj.s.get_data();
-			for (const auto& pr : prim)
-				obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
-			break;
-		}
-		case o_qua: {
-			vector<quad> prim = obj.q.get_data();
-			for (const auto& pr : prim)
-				obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
-			break;
-		}
-		case o_tri: {
-			vector<tri> prim = obj.t.get_data();
-			for (const auto& pr : prim)
-				obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
-			break;
-		}
-		case o_vox: {
-			vector<voxel> prim = obj.v.get_data();
-			for (const auto& pr : prim)
-				obj_bvh.push_back(mesh_raw(pr, obj.get_mat()));
-			break;
-		}
+		case o_tri: obj_bvh.push_back(mesh_raw(obj.t.get_data(i), mat)); break;
+		case o_qua: obj_bvh.push_back(mesh_raw(obj.q.get_data(i), mat)); break;
+		case o_sph: obj_bvh.push_back(mesh_raw(obj.s.get_data(i), mat)); break;
+		case o_vox: obj_bvh.push_back(mesh_raw(obj.v.get_data(i), mat)); break;
 		default:break;
 		}
 
@@ -115,7 +97,7 @@ aabb obj_list::box_from(uint begin, uint end) {
 	aabb bbox = aabb();
 	for (uint i = begin; i < end; i++)
 	{
-		bbox.join(obj_bvh[i].bbox);
+		bbox.join(obj_bvh[i].get_box());
 	}
 	return bbox;
 }

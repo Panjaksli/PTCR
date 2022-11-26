@@ -43,7 +43,7 @@ public:
 		hitrec rec;
 		if (!hit(r, rec))return 0;
 		//Sp = S * cos(theta) / t*t; 
-		float S = N.w;
+		float S = N.w();
 		float NoL = absdot(N, r.D);
 		return rec.t * rec.t / (S * NoL);
 	}

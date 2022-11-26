@@ -14,7 +14,7 @@ public:
 	inline vec3& operator[](int i) { return uvw[i]; }
 
 	__forceinline vec3 world(const vec3& a) const {
-		return a.x * u + a.y * v + a.z * w;
+		return a.x() * u + a.y() * v + a.z() * w;
 	}
 	__forceinline vec3 local(const vec3& a)const {
 		return vec3(dot(a, u), dot(a, v), dot(a, w));
@@ -24,13 +24,13 @@ public:
 	https://graphics.pixar.com/library/OrthonormalB/paper.pdf
 	*/
 	__forceinline void build(const vec3& n) {
-		float sign = signf(n.z);
-		float a = 1.f / (sign + n.z);
+		float sign = signf(n.z());
+		float a = 1.f / (sign + n.z());
 		vec3 s = vec3(a, a, 1.f, 1.f);
-		vec3 xy = vec3(n.x, n.y, 1.f, 1.f);
+		vec3 xy = vec3(n.x(), n.y(), 1.f, 1.f);
 		vec3 sxy = s * xy;
-		u = vec3(1, 0, 0, 0) - sign * n.x * sxy;
-		v = vec3(0, sign, 0, 0) - n.y * sxy;
+		u = vec3(1, 0, 0, 0) - sign * n.x() * sxy;
+		v = vec3(0, sign, 0, 0) - n.y() * sxy;
 		w = n;
 	}
 	void print() {

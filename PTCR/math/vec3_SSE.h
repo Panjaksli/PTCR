@@ -3,15 +3,26 @@
 #include <smmintrin.h>
 #include <xmmintrin.h>
 
-class vec3
+class __declspec(align(16)) vec3
 {
 public:
 	vec3() : xyz{} {}
 	vec3(__m128 t) :xyz(t) {}
 	vec3(float t) : xyz{ t,t,t,t } {}
-	vec3(vec3 v, float w) :xyz{ v.x,v.y,v.z,w } {}
+	vec3(vec3 v, float w) :xyz{ v.xyz[0],v.xyz[1],v.xyz[2],w} {}
 	vec3(float x, float y, float z = 0, float w = 0) : xyz{ x,y,z,w } {}
-
+	inline float x() const {
+		return xyz[0];
+	}
+	inline float y() const {
+		return xyz[1];
+	}
+	inline float z() const {
+		return xyz[2];
+	}
+	inline float w() const {
+		return xyz[3];
+	}
 	inline float operator[](uint i) const { return _xyz[i]; }
 	inline float& operator[](uint i) { return _xyz[i]; }
 	inline vec3 operator-() const { return vec3(-xyz); }
@@ -44,21 +55,18 @@ public:
 		return _mm_div_ps(xyz, _mm_sqrt_ps(_mm_dp_ps(xyz, xyz, 0x7F)));
 	}
 	void print()const {
-		printf("%.8f %.8f %.8f\n", x, y, z);
+		printf("%.8f %.8f %.8f\n", x(), y(), z());
 	}
 	void print4()const {
-		printf("%f %f %f %f\n", x, y, z, w);
+		printf("%f %f %f %f\n", x(), y(), z(), w());
 	}
 	void printM()const {
-		printf("%f %f %f %f\n", x, y, z, len());
+		printf("%f %f %f %f\n", x(), y(), z(), len());
 	}
 	union {
 		__m128 xyz;
-		struct {
-			float x, y, z, w;
-		};
 		float _xyz[4];
-	};
+	}__declspec(align(16));
 
 };
 
@@ -228,15 +236,11 @@ inline bool not0(vec3 u) {
 
 inline float min(vec3 u)
 {
-	__m128 v = _mm_set1_ps(u.xyz[2]);
-	v = _mm_min_ps(u.xyz, v);
-	return fminf(v[0], v[1]);
+	return fminf(u.xyz[0], fminf(u.xyz[1], u.xyz[2]));
 }
 inline float max(vec3 u)
 {
-	__m128 v = _mm_set1_ps(u.xyz[2]);
-	v = _mm_max_ps(u.xyz, v);
-	return fmaxf(v[0], v[1]);
+	return fmaxf(u.xyz[0], fmaxf(u.xyz[1], u.xyz[2]));
 }
 inline vec3 min(vec3 u, vec3 v)
 {

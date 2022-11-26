@@ -70,6 +70,7 @@ void scene::render(uint *disp, uint pitch) {
 		ray r(cam.raycast(pyr, pxr));
 #if DEBUG
 		if (opt.dbg_at)		 col = raycol_at(r);
+		else if (opt.dbg_n&& opt.dbg_uv)  col = raycol_face(r);
 		else if (opt.dbg_n)  col = raycol_n(r);
 		else if (opt.dbg_uv) col = raycol_uv(r);
 		else if (opt.dbg_t)  col = raycol_t(r);

@@ -139,10 +139,10 @@ void scn6(scene& scn) {
 	scn.world.add_mat(red, mat_ggx);
 
 	vector<tri> gourd = load_OBJ("gourd.obj", 0,0.5f);
-	vector<tri> teapot = load_OBJ("teapot.obj", 0,0.01f,true);
+	vector<tri> teapot = load_OBJ("teapot.obj", 0,0.25f);
 	scn.world.add(vec3(0,1,0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
 	scn.world.add(vec3(-0.3,1.79,-1),gourd, 1);
-	scn.world.add(vec3(0.7, 1.4, -1),teapot, 2);
+	scn.world.add(vec3(0.7, 1, -1),teapot, 2);
 	scn.opt = options();
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
@@ -203,19 +203,19 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 		else if (pref == "v")
 		{
 			vec3 tmp;
-			ss >> tmp.x >> tmp.y >> tmp.z;
+			ss >> tmp._xyz[0] >> tmp._xyz[1] >> tmp._xyz[2];
 			v.push_back(tmp);
 		}
 		else if (pref == "vt")
 		{
 			vec3 tmp;
-			ss >> tmp.x >> tmp.y;
+			ss >> tmp._xyz[0] >> tmp._xyz[1];
 			vt.push_back(tmp);
 		}
 		else if (pref == "vn")
 		{
 			vec3 tmp;
-			ss >> tmp.x >> tmp.y >> tmp.z;
+			ss >> tmp._xyz[0] >> tmp._xyz[1] >> tmp._xyz[2];
 			vn.push_back(tmp);
 		}
 		else if (pref == "f")
@@ -240,10 +240,11 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 	tris.resize(fv.size(), tri());
 	for (size_t i = 0; i < fv.size(); i++)
 	{
-		vec3 a = scale * v[fv[i].x];
-		vec3 b = scale * v[fv[i].y];
-		vec3 c = scale * v[fv[i].z];
-		tris[i] = flip ?tri(a,c,b) : tri(a, b, c);
+		vec3 a = scale * v[fv[i].all[0]];
+		vec3 b = scale * v[fv[i].all[1]];
+		vec3 c = scale * v[fv[i].all[2]];
+		tris[i] = flip ? tri(a,c,b) : tri(a, b, c);
+		//if (vn.size() > 0) tris[i] = tri(a, b, c, vn[fv[i].x()], vn[fv[i].y()], vn[fv[i].z()]);
 	}
 
 	std::cout << "Succesfully loaded: " << name << "\n";

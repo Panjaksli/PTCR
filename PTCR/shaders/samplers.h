@@ -54,18 +54,18 @@ inline vec3 sa_vndf(vec3 V_, float ro)
 	float r[2]; rafl_tuple(r);
 	vec3 scl = vec3(ro, ro, 1.f, 1.f);
 	vec3 V = norm(scl * V_);
-	vec3 T1 = (V.z < 0.9999f) ? norm(cross(V, vec3(0, 0, 1))) : vec3(1, 0, 0);
+	vec3 T1 = (V.z() < 0.9999f) ? norm(cross(V, vec3(0, 0, 1))) : vec3(1, 0, 0);
 	vec3 T2 = cross(T1, V);
-	float a = 1.f / (1.f + V.z);
+	float a = 1.f / (1.f + V.z());
 	float b = r[1] - a;
 	bool neg = b < 0;
 	float phi = neg ? pi * r[1] / a : pi + pi * b / (1.f - a);
 	vec3 ang = sqrtf(r[0]) * cossin(phi);
-	float P1 = ang.x;
-	float P2 = neg ? ang.y : ang.y * V.z;
+	float P1 = ang.x();
+	float P2 = neg ? ang.y() : ang.y() * V.z();
 	float P3 = sqrtf(fabsf(1.f - P1 * P1 - P2 * P2));
 	vec3 N = P1 * T1 + P2 * T2 + P3 * V;
-	N.z = fmaxf(N.z, 0);
+	N.xyz[2] = fmaxf(N.z(), 0);
 	N = norm(scl * N);
 	return N;
 }
