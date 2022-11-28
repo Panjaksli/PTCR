@@ -71,7 +71,6 @@ public:
 		float maxt = min(tmax);
 		if (maxt > mint  && maxt > 0 && mint < t) return mint;
 		else return infp;
-		//return mint <= maxt && maxt > 0 && (mint > 0 ? mint : maxt) < t ? t : infp;
 	}
 	vec3 pmin, pmax;
 };

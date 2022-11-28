@@ -154,6 +154,24 @@ void scn6(scene& scn) {
 	scn.cam.setup(matrix(vec3(0.2, 1.7, 1), vec3(0, 0, 0)), 70, 64.f);
 	en_bvh = 1;
 }
+void scn7(scene& scn) {
+	scn.world.clear();
+
+	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0), vec3(0.5, 0.5, 1), 1, 1.2);
+	albedo bro(vec3(0.4, 0.2, 0.0, 1), vec3(0, 0, 1));
+	albedo red(vec3(0.63, 0.28, 0, 1), vec3(0.5, 0, 0.1));
+	scn.world.add_mat(red, mat_ggx);
+	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0,0.01f);
+	scn.world.add(vec3(0, 1.8, -0.5),dragon, 0);
+	scn.opt = options();
+	scn.cam.exposure = 1.f;
+	scn.sun_pos.set_A(vec3(1, 0, 0.32));
+	scn.opt.bounces = 10;
+	scn.opt.p_life = 0.9f;
+	scn.opt.i_life = 1.f / 0.9f;
+	scn.cam.setup(matrix(vec3(0.2, 1.7, 1), vec3(0, 0, 0)), 70, 64.f);
+	en_bvh = 1;
+}
 
 std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 {
