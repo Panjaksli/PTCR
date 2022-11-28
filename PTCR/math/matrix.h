@@ -1,8 +1,7 @@
 #pragma once
 #include "vec3.h"
 
-class matrix {
-public:
+struct matrix {
 	matrix(vec3 P = 0, vec3 _A = 0) : A(_A) {
 		rot();
 		set_P(P);
@@ -67,13 +66,9 @@ public:
 		v.xyz[3] = u.w();
 		return v;
 	}
-	inline vec3 trans_rot(vec3 u)const {
-		vec3 v;
-		v.xyz[0] = dot(u, R[0]);
-		v.xyz[1] = dot(u, R[1]);
-		v.xyz[2] = dot(u, R[2]);
-		v.xyz[3] = 0;
-		return v;
+	void print() {
+		for (int i = 0; i < 3; i++)
+			R[i].print4();
 	}
 	vec3 R[3], A;
 };

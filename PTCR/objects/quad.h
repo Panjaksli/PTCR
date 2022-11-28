@@ -8,7 +8,7 @@ public:
 	quad(vec3 _Q, vec3 _U, vec3 _V, bool param) :Q(_Q), U(_U), V(_V), N(normal(U, V)) {}
 
 	inline aabb get_box()const {
-		return (aabb(Q, Q + U, Q + V) + aabb(Q + U + V, Q + U, Q + V));//.padded();
+		return aabb(Q, Q + U, Q + V, Q + U + V);//.padded();
 	}
 	inline quad trans(const matrix& T) const {
 		vec3 q = T * Q + T.P();

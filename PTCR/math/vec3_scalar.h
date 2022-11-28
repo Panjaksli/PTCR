@@ -1,26 +1,17 @@
 #pragma once
 #include "util.h"
-class __declspec(align(16)) 
+struct __declspec(align(16))
 vec3
 {
-public:
-	vec3() : _xyz{} {}
-	vec3(float t) : _xyz{ t,t,t,t } {}
-	vec3(vec3 v, float w) :_xyz{ v.x(),v.y(),v.z(),w } {}
-	vec3(float x, float y, float z = 0, float w = 0) : _xyz{ x,y,z,w } {}
-	inline float x() const {
-		return xyz[0];
-	}
-	inline float y() const {
-		return xyz[1];
-	}
-	inline float z() const {
-		return xyz[2];
-	}
-	inline float w() const {
-		return xyz[3];
-	}
-	inline float operator[](uint i) const { return _xyz[i]; }
+	vec3() : xyz{} {}
+	vec3(float t) : xyz{ t,t,t,t } {}
+	vec3(vec3 v, float w) :xyz{ v.x(),v.y(),v.z(),w } {}
+	vec3(float x, float y, float z = 0, float w = 0) : xyz{ x,y,z,w } {}
+	inline float x() const { return xyz[0]; }
+	inline float y() const { return xyz[1]; }
+	inline float z() const { return xyz[2]; }
+	inline float w() const { return xyz[3]; }
+	inline float operator[](uint i) const { return xyz[i]; }
 	inline float& operator[](uint i) { return _xyz[i]; }
 	inline vec3 operator-() const { return vec3(-x(), -y(), -z(), -w()); }
 	inline vec3& operator+=(vec3 u)
@@ -90,7 +81,10 @@ inline float operator&(vec3 u, vec3 v) {
 }
 inline vec3 operator%(vec3 u, vec3 v)
 {
-	return vec3(u.y() * v.z() - u.z() * v.y(), u.z() * v.x() - u.x() * v.z(), u.x() * v.y() - u.y() * v.x());
+	float x = u.y() * v.z() - u.z() * v.y();
+	float y = u.z() * v.x() - u.x() * v.z();
+	float z = u.x() * v.y() - u.y() * v.x();
+	return vec3(x, y, z);
 }
 inline vec3 sqrt(vec3 u)
 {
@@ -196,7 +190,7 @@ inline vec3 vec_not0(vec3 u) {
 }
 inline bool lt(vec3 u, vec3 v)
 {
-	return u.x() < v.x()&& u.y() < v.y()&& u.z() < v.z();
+	return u.x() < v.x() && u.y() < v.y() && u.z() < v.z();
 }
 inline bool gt(vec3 u, vec3 v)
 {
@@ -213,7 +207,7 @@ inline bool neq(vec3 u, vec3 v)
 inline bool eq_tol(vec3 u, vec3 v, float tol = eps)
 {
 	vec3 w = abs(u - v);
-	return w.x() < eps&& w.y() < eps&& w.z() < eps;
+	return w.x() < eps && w.y() < eps && w.z() < eps;
 }
 inline bool eq0(vec3 u)
 {
@@ -227,7 +221,7 @@ inline bool neq0(vec3 u)
 inline bool near0(vec3 u)
 {
 	u = fabs(u);
-	return u.x() < eps&& u.y() < eps&& u.z() < eps;
+	return u.x() < eps && u.y() < eps && u.z() < eps;
 }
 inline bool not0(vec3 u) {
 	return !near0(u);

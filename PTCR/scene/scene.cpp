@@ -44,7 +44,7 @@ void scene::set_trans(obj_id id, const matrix& T, uint node_size) {
 	}
 }
 
-void scene::render(uint *disp, uint pitch) {
+void scene::Render(uint *disp, uint pitch) {
 	//write straight to texture (tiny bit less overhead)
 	cam.CCD.set_disp(disp, pitch);
 	float invs = 1.f / fmaxf(opt.samples, 1);

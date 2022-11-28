@@ -39,7 +39,7 @@ public:
 	void cam_autofocus();
 	void cam_manufocus(float py = 0, float px = 0);
 	void set_trans(obj_id id, const matrix& T, uint node_size = 8);
-	void render(uint* disp, uint pitch);
+	void Render(uint* disp, uint pitch);
 private:
 	inline vec3 raycol_face(const ray& r)const {
 		hitrec rec;

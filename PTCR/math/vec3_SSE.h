@@ -3,27 +3,18 @@
 #include <smmintrin.h>
 #include <xmmintrin.h>
 
-class __declspec(align(16)) vec3
+struct __declspec(align(16)) vec3
 {
-public:
 	vec3() : xyz{} {}
 	vec3(__m128 t) :xyz(t) {}
 	vec3(float t) : xyz{ t,t,t,t } {}
 	vec3(vec3 v, float w) :xyz{ v.xyz[0],v.xyz[1],v.xyz[2],w} {}
 	vec3(float x, float y, float z = 0, float w = 0) : xyz{ x,y,z,w } {}
-	inline float x() const {
-		return xyz[0];
-	}
-	inline float y() const {
-		return xyz[1];
-	}
-	inline float z() const {
-		return xyz[2];
-	}
-	inline float w() const {
-		return xyz[3];
-	}
-	inline float operator[](uint i) const { return _xyz[i]; }
+	inline float x() const { return xyz[0]; }
+	inline float y() const { return xyz[1]; }
+	inline float z() const { return xyz[2]; }
+	inline float w() const { return xyz[3]; }
+	inline float operator[](uint i) const { return xyz[i]; }
 	inline float& operator[](uint i) { return _xyz[i]; }
 	inline vec3 operator-() const { return vec3(-xyz); }
 	inline vec3& operator+=(vec3 u)

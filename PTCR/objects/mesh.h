@@ -132,7 +132,7 @@ struct mesh_var {
 		case o_qua: q = cpy.q; break;
 		case o_tri: t = cpy.t; break;
 		case o_vox:	v = cpy.v; break;
-		case o_bla:
+		
 
 		default:break;
 		}
@@ -144,7 +144,7 @@ struct mesh_var {
 		case o_qua: q = cpy.q; break;
 		case o_tri: t = cpy.t; break;
 		case o_vox:	v = cpy.v; break;
-		case o_bla:
+		
 
 		default:break;
 		}
@@ -157,7 +157,7 @@ struct mesh_var {
 		case o_qua: q.~mesh(); break;
 		case o_tri: t.~mesh(); break;
 		case o_vox:	v.~mesh(); break;
-		case o_bla:
+		
 
 		default:break;
 		}
@@ -173,7 +173,7 @@ struct mesh_var {
 		case o_qua: return q.hit(r, rec);
 		case o_tri: return t.hit(r, rec);
 		case o_vox: return v.hit(r, rec);
-		case o_bla:
+		
 
 		default: return false;
 		}
@@ -185,7 +185,7 @@ struct mesh_var {
 		case o_qua: return q.get_trans();
 		case o_tri: return t.get_trans();
 		case o_vox: return v.get_trans();
-		case o_bla:
+		
 
 		default: return matrix();
 		}
@@ -196,7 +196,7 @@ struct mesh_var {
 		case o_qua: q.set_trans(T); break;
 		case o_tri: t.set_trans(T); break;
 		case o_vox: v.set_trans(T); break;
-		case o_bla:
+		
 
 		default: break;
 		}
@@ -214,7 +214,7 @@ struct mesh_var {
 		case o_qua: return q.pdf(r);
 		case o_tri: return t.pdf(r);
 		case o_vox: return v.pdf(r);
-		case o_bla:
+		
 
 		default: return 0;
 		}
@@ -225,7 +225,7 @@ struct mesh_var {
 		case o_qua: return q.rand_to(O);
 		case o_tri: return t.rand_to(O);
 		case o_vox: return v.rand_to(O);
-		case o_bla:
+		
 
 		default: return 0;
 		}
@@ -236,7 +236,7 @@ struct mesh_var {
 		case o_qua: return q.rand_from();
 		case o_tri: return t.rand_from();
 		case o_vox: return v.rand_from();
-		case o_bla:
+		
 
 		default: return 0;
 		}
@@ -256,28 +256,12 @@ struct mesh_raw {
 	mesh_raw(quad* m, uint mat) : bbox(m->get_box()), q(m), mat(mat), id(o_qua) {}
 	mesh_raw(sphere* m, uint mat) : bbox(m->get_box()), s(m), mat(mat), id(o_sph) {}
 	mesh_raw(voxel* m, uint mat) :bbox(m->get_box()), v(m), mat(mat), id(o_vox) {}
-	mesh_raw(const mesh_raw& cpy) :bbox(cpy.bbox), mat(cpy.mat), id(cpy.id) {
-		switch (id) {
-		case o_tri: t = cpy.t; break;
-		case o_qua: q = cpy.q; break;
-		case o_sph: s = cpy.s; break;
-		case o_vox:	v = cpy.v; break;
-		case o_bla:
-		default:break;
-		}
-	}
+	mesh_raw(const mesh_raw& cpy) :bbox(cpy.bbox),t(cpy.t), mat(cpy.mat), id(cpy.id) {	}
 	const mesh_raw& operator=(const mesh_raw& cpy) {
 		bbox = cpy.bbox;
+		t = cpy.t;
 		mat = cpy.mat;
 		id = cpy.id;
-		switch (id) {
-		case o_tri: t = cpy.t; break;
-		case o_qua: q = cpy.q; break;
-		case o_sph: s = cpy.s; break;
-		case o_vox:	v = cpy.v; break;
-		case o_bla:
-		default:break;
-		}
 		return *this;
 	}
 
@@ -285,11 +269,13 @@ struct mesh_raw {
 	{
 		if (!bbox.hit(r))return false;
 		bool hit = 0;
-		if (id == o_tri)hit = t[0].hit(r, rec);
-		else if (id == o_qua)hit = q[0].hit(r, rec);
-		else if (id == o_sph)hit = s[0].hit(r, rec);
-		else if (id == o_vox)hit = v[0].hit(r, rec);
-		else hit = false;
+		switch (id) {
+		case o_tri: hit = t->hit(r, rec); break;
+		case o_qua: hit = q->hit(r, rec); break;
+		case o_sph: hit = s->hit(r, rec); break;
+		case o_vox:	hit = v->hit(r, rec); break;
+		default:break;
+		}
 		if (hit)rec.mat = mat;
 		return hit;
 	}

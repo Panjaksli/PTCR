@@ -131,7 +131,7 @@ void scn5(scene& scn) {
 void scn6(scene& scn) {
 	scn.world.clear();
 
-	albedo gre(vec3(0.5, 0.7, 0.5, 1), vec3(0, 0, 1));
+	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0),vec3(0.5,0.5,1),1,1.2);
 	albedo bro(vec3(0.4, 0.2, 0.0, 1), vec3(0, 0, 1));
 	albedo red(vec3(0.63, 0.28, 0.25, 1), vec3(0.5, 0, 0.1));
 	scn.world.add_mat(bro, mat_mix);
@@ -140,9 +140,11 @@ void scn6(scene& scn) {
 
 	vector<tri> gourd = load_OBJ("gourd.obj", 0,0.5f);
 	vector<tri> teapot = load_OBJ("teapot.obj", 0,0.25f);
+//	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0,0.01f);
 	scn.world.add(vec3(0,1,0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
 	scn.world.add(vec3(-0.3,1.79,-1),gourd, 1);
 	scn.world.add(vec3(0.7, 1, -1),teapot, 2);
+	//scn.world.add(vec3(0, 1.8, -0.5),dragon, 2);
 	scn.opt = options();
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
@@ -228,7 +230,7 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 				buff.all[cnt] = tmp - 1;
 				if (ss.peek() == ' ')
 				{
-					++cnt;
+					cnt++;
 					ss.ignore(1, ' ');
 				}
 			}
@@ -237,7 +239,7 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 		}
 		else;
 	}
-	tris.resize(fv.size(), tri());
+	tris.resize(fv.size());
 	for (size_t i = 0; i < fv.size(); i++)
 	{
 		vec3 a = scale * v[fv[i].all[0]];

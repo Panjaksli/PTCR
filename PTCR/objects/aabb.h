@@ -8,6 +8,7 @@ public:
 
 	aabb(const vec3 p1, const vec3 p2) :pmin(min(p1, p2)), pmax(max(p1, p2)) {}
 	aabb(const vec3 p1, const vec3 p2, const vec3 p3) :pmin(min(p1, p2, p3)), pmax(max(p1, p2, p3)) {}
+	aabb(const vec3 p1, const vec3 p2, const vec3 p3, const vec3 p4) :pmin(min(p1, p2, min(p3, p4))), pmax(max(p1, p2, max(p3, p4))) {}
 	aabb(const aabb& box1, const aabb& box2) :pmin(min(box1.pmin, box2.pmin)), pmax(max(box1.pmax, box2.pmax)) {}
 	inline aabb operator+(const aabb& box)const {
 		aabb box1 = *this;
@@ -26,7 +27,7 @@ public:
 		}
 	}
 	inline void pad() {
-		vec3 delta = (0.5f * eps) * vec_lt(fabs(pmax-pmin),eps);
+		vec3 delta = (0.5f * eps) * vec_lt(fabs(pmax - pmin), eps);
 		pmin -= delta;
 		pmax += delta;
 	}
@@ -38,7 +39,7 @@ public:
 	inline vec3 pmid()const {
 		return 0.5f * (pmin + pmax);
 	}
-	inline uchar get_longest_axis() const{
+	inline uchar get_longest_axis() const {
 		vec3 x = abs(pmax - pmin);
 		uchar axis = 0;
 		if (x.y() > x.x()) axis = 1;

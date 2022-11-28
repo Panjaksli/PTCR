@@ -34,7 +34,7 @@ void save_png(void* img, uint w, uint h) {
 		cout << "Saved file in: " << file << "\n";
 	}
 	else {
-		cout << "Save failed !!!\n";
+		throw "Save failed !!!\n";
 	}
 	delete[]buff;
 }
@@ -56,7 +56,7 @@ void save_hdr(vector<vec3>& img, uint w, uint h, int spp) {
 		cout << "Saved file in: " << file << "\n";
 	}
 	else {
-		cout << "Save failed !!!\n";
+		throw "Save failed !!!\n";
 	}
 	delete[]buff;
 }
