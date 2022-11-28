@@ -58,10 +58,10 @@ void obj_list::obj_unroll() {
 		uint mat = obj.get_mat();
 		for (uint i = 0; i < obj.get_size(); i++)
 			switch (obj.id) {
-			case o_tri: obj_bvh.push_back(mesh_raw(obj.t.get_data(i), mat)); break;
-			case o_qua: obj_bvh.push_back(mesh_raw(obj.q.get_data(i), mat)); break;
-			case o_sph: obj_bvh.push_back(mesh_raw(obj.s.get_data(i), mat)); break;
-			case o_vox: obj_bvh.push_back(mesh_raw(obj.v.get_data(i), mat)); break;
+			case o_tri: obj_bvh.emplace_back(mesh_raw(obj.t.get_data(i), mat)); break;
+			case o_qua: obj_bvh.emplace_back(mesh_raw(obj.q.get_data(i), mat)); break;
+			case o_sph: obj_bvh.emplace_back(mesh_raw(obj.s.get_data(i), mat)); break;
+			case o_vox: obj_bvh.emplace_back(mesh_raw(obj.v.get_data(i), mat)); break;
 			default:break;
 			}
 
@@ -85,10 +85,10 @@ void obj_list::split_bvh(uint be, uint en, uint node_size) {
 	case 1: std::sort(begin, end, cmp_axis_y); break;
 	default: std::sort(begin, end, cmp_axis_z); break;
 	}
-	if (size <= node_size)bvh.push_back(bvh_node(bbox, be, en, 0));
+	if (size <= node_size)bvh.emplace_back(bvh_node(bbox, be, en, 0));
 	else {
 		uint n = bvh.size();
-		bvh.push_back(bvh_node(bbox, n + 1, 0, 1));
+		bvh.emplace_back(bvh_node(bbox, n + 1, 0, 1));
 		split_bvh(be, be + size / 2, node_size);
 		bvh[n].n2 = bvh.size();
 		split_bvh(be + size / 2, be + size, node_size);

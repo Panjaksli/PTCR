@@ -43,12 +43,12 @@ void scn2(scene& scn) {
 	scn.world.add_mat(iron, mat_ggx);
 	scn.world.add_mat(white, mat_lig);
 	vector<quad> room(6);
-	room.push_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 0, 1)));
-	room.push_back(quad(vec3(-1, 0, -1), vec3(-1, 2, -1), vec3(-1, 0, 1)));
-	room.push_back(quad(vec3(3, 0, -1), vec3(3, 1.5, -1), vec3(3, 0, 1)));
-	room.push_back(quad(vec3(-1, 2, -1), vec3(3, 2, -1), vec3(-1, 2, 1)));
-	room.push_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 2, -1)));
-	room.push_back(quad(vec3(-1, 0, 1), vec3(3, 0, 1), vec3(-1, 2, 1)));
+	room.emplace_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 0, 1)));
+	room.emplace_back(quad(vec3(-1, 0, -1), vec3(-1, 2, -1), vec3(-1, 0, 1)));
+	room.emplace_back(quad(vec3(3, 0, -1), vec3(3, 1.5, -1), vec3(3, 0, 1)));
+	room.emplace_back(quad(vec3(-1, 2, -1), vec3(3, 2, -1), vec3(-1, 2, 1)));
+	room.emplace_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 2, -1)));
+	room.emplace_back(quad(vec3(-1, 0, 1), vec3(3, 0, 1), vec3(-1, 2, 1)));
 	scn.opt = options();
 	scn.world.add(room, 0);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(1, 0, 0), vec3(0, 1, 0.999)), 1); //0.24 0 0.67
@@ -210,7 +210,16 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 		if (!file.is_open())
 			throw "File not found !";
 	}
-
+	vector<char> buffer;
+	buffer.resize(1024*1024, 0);
+	file.rdbuf()->pubsetbuf(&buffer[0], buffer.size());
+	int size = file.tellg();;
+	v.reserve(size/2);
+	vt.reserve(size / 2);
+	vn.reserve(size / 2);
+	fv.reserve(size / 2);
+	ft.reserve(size / 2);
+	fn.reserve(size / 2);
 	while (std::getline(file, line))
 	{
 		ss.clear();
@@ -224,36 +233,30 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 		{
 			vec3 tmp;
 			ss >> tmp._xyz[0] >> tmp._xyz[1] >> tmp._xyz[2];
-			v.push_back(tmp);
+			v.emplace_back(tmp);
 		}
 		else if (pref == "vt")
 		{
 			vec3 tmp;
 			ss >> tmp._xyz[0] >> tmp._xyz[1];
-			vt.push_back(tmp);
+			vt.emplace_back(tmp);
 		}
 		else if (pref == "vn")
 		{
 			vec3 tmp;
 			ss >> tmp._xyz[0] >> tmp._xyz[1] >> tmp._xyz[2];
-			vn.push_back(tmp);
+			vn.emplace_back(tmp);
 		}
 		else if (pref == "f")
 		{
 			int cnt = 0;
 			int tmp = 0;
 			xyz buff = {};
-			while (ss >> tmp)
-			{
-				buff.all[cnt] = tmp - 1;
-				if (ss.peek() == ' ')
-				{
-					cnt++;
-					ss.ignore(1, ' ');
-				}
-			}
-
-			fv.push_back(buff);
+			ss >> buff.x >> buff.y >> buff.z;
+			buff.x -= 1;
+			buff.y -= 1;
+			buff.z -= 1;
+			fv.emplace_back(buff);
 		}
 		else;
 	}
