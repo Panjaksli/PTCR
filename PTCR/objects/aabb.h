@@ -62,6 +62,17 @@ public:
 		float maxt = min(tmax);
 		return mint <= maxt && maxt > 0;
 	}
+	__forceinline float hit(const ray& r, float t) const {
+		vec3 t1 = (pmin - r.O) * r.iD;
+		vec3 t2 = (pmax - r.O) * r.iD;
+		vec3 tmin = min(t1, t2);
+		vec3 tmax = max(t1, t2);
+		float mint = max(tmin);
+		float maxt = min(tmax);
+		if (maxt > mint  && maxt > 0 && mint < t) return mint;
+		else return infp;
+		//return mint <= maxt && maxt > 0 && (mint > 0 ? mint : maxt) < t ? t : infp;
+	}
 	vec3 pmin, pmax;
 };
 
