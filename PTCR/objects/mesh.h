@@ -42,6 +42,14 @@ public:
 		if (hit)rec.mat = mat;
 		return hit;
 	}
+
+	__forceinline bool hit(const ray& r, hitrec& rec, uint prim_id) const
+	{
+		bool hit = prim[prim_id].hit(r, rec);
+		if (hit)rec.mat = mat;
+		return hit;
+	}
+
 	inline matrix get_trans()const {
 		return matrix(P, A);
 	}
@@ -51,11 +59,17 @@ public:
 		matrix dT3(_T.P(), 0);
 		P = _T.P();
 		A = _T.A;
-		transform(dT1);
-		transform(dT2);
-		build_cache(dT3);
+#pragma omp parallel for schedule(static,64)
+		for (uint i = 0; i < size; i++)
+		{
+			prim[i] = prim[i].trans(dT1);
+			prim[i] = prim[i].trans(dT2);
+			prim[i] = prim[i].trans(dT3);
+		}
+		fit();
 	}
 	inline aabb get_box()const { return bbox; }
+	inline aabb get_box(uint prim_id)const { return prim[prim_id].get_box(); }
 	__forceinline float pdf(const ray& r)const {
 		if (size == 1) return prim[0].pdf(r);
 		float y = 0.f;
@@ -78,7 +92,7 @@ public:
 	inline vector<primitive> get_data()const {
 		return vector<primitive>(prim, prim + size);
 	}
-	inline primitive* get_data(uint i) {
+	inline primitive* get_data(uint i) const {
 		return &(prim[i]);
 	}
 	inline uint get_mat()const {
@@ -89,6 +103,7 @@ public:
 	}
 private:
 	inline void transform(const matrix& dT) {
+#pragma omp parallel for schedule(static,64)
 		for (uint i = 0; i < size; i++)
 			prim[i] = prim[i].trans(dT);
 	}
@@ -132,7 +147,7 @@ struct mesh_var {
 		case o_qua: q = cpy.q; break;
 		case o_tri: t = cpy.t; break;
 		case o_vox:	v = cpy.v; break;
-		
+
 
 		default:break;
 		}
@@ -144,7 +159,7 @@ struct mesh_var {
 		case o_qua: q = cpy.q; break;
 		case o_tri: t = cpy.t; break;
 		case o_vox:	v = cpy.v; break;
-		
+
 
 		default:break;
 		}
@@ -157,7 +172,7 @@ struct mesh_var {
 		case o_qua: q.~mesh(); break;
 		case o_tri: t.~mesh(); break;
 		case o_vox:	v.~mesh(); break;
-		
+
 
 		default:break;
 		}
@@ -173,11 +188,21 @@ struct mesh_var {
 		case o_qua: return q.hit(r, rec);
 		case o_tri: return t.hit(r, rec);
 		case o_vox: return v.hit(r, rec);
-		
-
 		default: return false;
 		}
 	}
+
+	__forceinline bool hit(const ray& r, hitrec& rec, uint prim_id) const
+	{
+		switch (id) {
+		case o_tri: return t.hit(r, rec, prim_id);
+		case o_qua: return q.hit(r, rec, prim_id);
+		case o_sph: return s.hit(r, rec, prim_id);
+		case o_vox: return v.hit(r, rec, prim_id);
+		default: return false;
+		}
+	}
+
 
 	matrix get_trans()const {
 		switch (id) {
@@ -185,8 +210,6 @@ struct mesh_var {
 		case o_qua: return q.get_trans();
 		case o_tri: return t.get_trans();
 		case o_vox: return v.get_trans();
-		
-
 		default: return matrix();
 		}
 	}
@@ -196,16 +219,24 @@ struct mesh_var {
 		case o_qua: q.set_trans(T); break;
 		case o_tri: t.set_trans(T); break;
 		case o_vox: v.set_trans(T); break;
-		
-
 		default: break;
 		}
 	}
 	inline uint get_size()const {
 		return s.get_size();
 	}
+
 	inline aabb get_box()const {
 		return s.get_box();
+	}
+	inline aabb get_box(uint prim_id)const {
+		switch (id) {
+		case o_tri: return t.get_box(prim_id);
+		case o_qua: return q.get_box(prim_id);
+		case o_sph: return s.get_box(prim_id);
+		case o_vox: return v.get_box(prim_id);
+		default: return aabb();
+		}
 	}
 	__forceinline float pdf(const ray& r)const {
 		if (!s.get_box().hit(r))return 0;
@@ -214,8 +245,6 @@ struct mesh_var {
 		case o_qua: return q.pdf(r);
 		case o_tri: return t.pdf(r);
 		case o_vox: return v.pdf(r);
-		
-
 		default: return 0;
 		}
 	}
@@ -225,7 +254,7 @@ struct mesh_var {
 		case o_qua: return q.rand_to(O);
 		case o_tri: return t.rand_to(O);
 		case o_vox: return v.rand_to(O);
-		
+
 
 		default: return 0;
 		}
@@ -236,7 +265,7 @@ struct mesh_var {
 		case o_qua: return q.rand_from();
 		case o_tri: return t.rand_from();
 		case o_vox: return v.rand_from();
-		
+
 
 		default: return 0;
 		}
@@ -249,21 +278,33 @@ struct mesh_var {
 	};
 	obj_enum id;
 };
-
-
+#if BVHSMALL
 struct mesh_raw {
-	mesh_raw(tri* m, uint mat) : bbox(m->get_box()), t(m), mat(mat), id(o_tri) {}
-	mesh_raw(quad* m, uint mat) : bbox(m->get_box()), q(m), mat(mat), id(o_qua) {}
-	mesh_raw(sphere* m, uint mat) : bbox(m->get_box()), s(m), mat(mat), id(o_sph) {}
-	mesh_raw(voxel* m, uint mat) :bbox(m->get_box()), v(m), mat(mat), id(o_vox) {}
-	mesh_raw(const mesh_raw& cpy) :bbox(cpy.bbox),t(cpy.t), mat(cpy.mat), id(cpy.id) {	}
-	const mesh_raw& operator=(const mesh_raw& cpy) {
-		bbox = cpy.bbox;
-		t = cpy.t;
-		mat = cpy.mat;
-		id = cpy.id;
-		return *this;
+	mesh_raw(const mesh_var* obj, uint prim_id) : bbox(obj->get_box(prim_id)), obj(obj), prim_id(prim_id) {}
+
+	__forceinline bool hit(const ray& r, hitrec& rec) const
+	{
+		if (!bbox.hit(r))return false;
+		return obj->hit(r, rec, prim_id);
 	}
+
+	inline aabb get_box()const {
+		return bbox;
+	}
+	inline void update_box() {
+		bbox = obj->get_box(prim_id);
+	}
+	aabb bbox;
+	const mesh_var* obj;
+	uint prim_id;
+};
+
+#else
+struct mesh_raw {
+	mesh_raw(const tri* m, uint mat) : bbox(m->get_box()), t(m), mat(mat), id(o_tri) {}
+	mesh_raw(const quad* m, uint mat) : bbox(m->get_box()), q(m), mat(mat), id(o_qua) {}
+	mesh_raw(const sphere* m, uint mat) : bbox(m->get_box()), s(m), mat(mat), id(o_sph) {}
+	mesh_raw(const voxel* m, uint mat) :bbox(m->get_box()), v(m), mat(mat), id(o_vox) {}
 
 	__forceinline bool hit(const ray& r, hitrec& rec) const
 	{
@@ -283,17 +324,26 @@ struct mesh_raw {
 	inline aabb get_box()const {
 		return bbox;
 	}
-
+	inline void update_box() {
+		switch (id) {
+		case o_tri: bbox = t->get_box(); break;
+		case o_qua: bbox = q->get_box(); break;
+		case o_sph: bbox = s->get_box(); break;
+		case o_vox: bbox = v->get_box(); break;
+		default:break;
+		}
+	}
 	aabb bbox;
 	union {
-		tri* t;
-		quad* q;
-		sphere* s;
-		voxel* v;
+		const tri* t;
+		const quad* q;
+		const sphere* s;
+		const voxel* v;
 	};
 	uint mat;
 	obj_enum id;
 };
+#endif
 #pragma pack(pop)
 
 

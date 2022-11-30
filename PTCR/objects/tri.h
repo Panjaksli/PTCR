@@ -7,7 +7,7 @@ public:
 	tri(vec3 _Q, vec3 _U, vec3 _V, bool param) :Q(_Q), U(_U), V(_V), N(normal(U, V)) {}
 
 	inline aabb get_box()const {
-		return aabb(Q, Q + U, Q + V);
+		return aabb(Q, Q + U, Q + V).padded();
 	}
 	inline tri trans(const matrix& T) const {
 		vec3 q = T * Q + T.P();

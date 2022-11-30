@@ -24,6 +24,9 @@ struct bvh_node {
 	aabb bbox;
 	uint n1, n2;
 	bool flag;
+	//bool flag;
+	/*bvh_node(aabb bbox, uint n1, uint n2, bool flag = 0) :p1(bbox.pmin), n1(n1), p2(bbox.pmax), n2(n2), flag(flag) {}
+	union { aabb bbox; struct { vec3f p1; uint n1; vec3f p2; uint n2; }; };*/
 };
 
 struct hitrec

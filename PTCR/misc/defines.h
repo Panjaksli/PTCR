@@ -13,6 +13,7 @@
 #define muni std::make_unique
 #define GAMMA2 1
 #define DEBUG 1
+#define BVHSMALL 0
 #define USE_SSE (1 && __SSE2__)
 constexpr float pi = 3.1415926535897932385;
 constexpr float pi2 = 2.0 * pi;

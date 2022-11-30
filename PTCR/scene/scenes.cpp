@@ -19,7 +19,7 @@ void scn1(scene& scn) {
 	scn.world.add_mat(red, mat_ggx);
 	scn.world.add_mat(trans2, mat_mix);
 	scn.world.add_mat(blue, mat_ggx);
-	scn.world.add(quad(vec3(-100, 0, -100), vec3(100, 0, -100), vec3(-100, 0, 100)), 0,1);
+	scn.world.add(quad(vec3(-100, 0, -100), vec3(100, 0, -100), vec3(-100, 0, 100)), 0, 1);
 	scn.world.add(sphere(vec3(0, 3.001, -3, 1)), 1);
 	scn.world.add(voxel(vec3(0, 3.001, -3, 0.576)), 2);
 	scn.world.add(voxel(vec3(0, 1.001, -3, 1)), 3);
@@ -39,7 +39,7 @@ void scn2(scene& scn) {
 	albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 10);
 	albedo white(vec3(0.8, 0.8, 0.8), vec3(0, 5, 0));
 	albedo pbrcol(vec3(0.5, 0.1, 0.1), vec3(), texture("iron_block_normal.png"), 10);
-	scn.world.add_mat(albedo(vec3(0.8, 0.8, 0.8,1), vec3(0,0,1)), mat_mix);
+	scn.world.add_mat(albedo(vec3(0.8, 0.8, 0.8, 1), vec3(0, 0, 1)), mat_mix);
 	scn.world.add_mat(iron, mat_ggx);
 	scn.world.add_mat(white, mat_lig);
 	vector<quad> room(6);
@@ -52,20 +52,20 @@ void scn2(scene& scn) {
 	scn.opt = options();
 	scn.world.add(room, 0);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(1, 0, 0), vec3(0, 1, 0.999)), 1); //0.24 0 0.67
-	scn.world.add(voxel(vec3(0, 1.9, 0, 0.1)), 2, 1,1);
+	scn.world.add(voxel(vec3(0, 1.9, 0, 0.1)), 2, 1, 1);
 	scn.sun_pos.set_A(vec3(-1, 0, 0));
 	scn.cam.setup(matrix(vec3(2, 1, 0), vec3(0, hpi, 0)), 90, 10);
 	en_bvh = 0;
 }
 void scn3(scene& scn) {
 	scn.world.clear();
-	
+
 	for (int i = 0; i <= 10; i++) {
 		for (int j = 0; j <= 10; j++) {
 			albedo pbrcol(vec3(0.9f, 0.6f, 0.), vec3(0.1 * i, 0, 0.1 * j), vec3(0.5, 0.5, 1), 10);
 			scn.world.add_mat(pbrcol, mat_ggx);
 			for (int k = 0; k <= 10; k++)
-			scn.world.add(sphere(vec3(6 - j, 6 - i, -3 - k, 0.5)), i * 11 + j);
+				scn.world.add(sphere(vec3(6 - j, 6 - i, -3 - k, 0.5)), i * 11 + j);
 		}
 	}
 	scn.opt = options();
@@ -77,20 +77,20 @@ void scn4(scene& scn) {
 	scn.world.clear();
 	albedo white(vec3(0.9, 0.9, 0.9, 1), vec3(0, 0, 1));
 	albedo light(vec3(0.4, 0.0, 0.7, 1), vec3(0, 100, 0));
-	albedo clear(vec3(1.f, 1.f, 1.f, 0), vec3(1, 0, 0.2),vec3(0.5,0.5,1), 1, 1.5);
+	albedo clear(vec3(1.f, 1.f, 1.f, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.5);
 	scn.world.add_mat(white, mat_ggx);
 	scn.world.add_mat(clear, mat_mix);
 	scn.world.add_mat(light, mat_lig);
-	scn.world.add(quad(vec3(-10, eps, -10), vec3(10, eps, -10), vec3(-10, eps, 10)), 0,1);
-	scn.world.add(voxel(vec3(0, 1+10*eps, 0, 1)), 1, 1,1);
-	scn.world.add(sphere(vec3(3, 3, 3, 0.5)), 2 , 1,1);
+	scn.world.add(quad(vec3(-10, eps, -10), vec3(10, eps, -10), vec3(-10, eps, 10)), 0, 1);
+	scn.world.add(voxel(vec3(0, 1 + 10 * eps, 0, 1)), 1, 1, 1);
+	scn.world.add(sphere(vec3(3, 3, 3, 0.5)), 2, 1, 1);
 	scn.opt = options();
 	scn.opt.sky = false;
 	scn.cam.exposure = 1.f;
 	scn.opt.bounces = 10;
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
-	scn.cam.setup(matrix(vec3(3, 3, -3), vec3(0, 3*pi/4, -pi/6)), 60, 1.f);
+	scn.cam.setup(matrix(vec3(3, 3, -3), vec3(0, 3 * pi / 4, -pi / 6)), 60, 1.f);
 	en_bvh = 0;
 }
 void scn5(scene& scn) {
@@ -110,40 +110,40 @@ void scn5(scene& scn) {
 	scn.world.add_mat(mirror, mat_ggx);
 	scn.world.add_mat(light, mat_lig);
 	constexpr float l = 0.555f;
-	scn.world.add(quad(vec3(0, 0, 0), vec3(l, 0, 0), vec3(0, 0, -l)),0);
-	scn.world.add(quad(vec3(0, l, 0), vec3(l, l, 0), vec3(0, l, -l)),0);
-	scn.world.add(quad(vec3(0, 0, -l), vec3(l, 0, -l), vec3(0, l, -l)),3);
+	scn.world.add(quad(vec3(0, 0, 0), vec3(l, 0, 0), vec3(0, 0, -l)), 0);
+	scn.world.add(quad(vec3(0, l, 0), vec3(l, l, 0), vec3(0, l, -l)), 0);
+	scn.world.add(quad(vec3(0, 0, -l), vec3(l, 0, -l), vec3(0, l, -l)), 3);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(0, 0, -l), vec3(0, l, 0)), 1);
 	scn.world.add(quad(vec3(l, 0, 0), vec3(l, 0, -l), vec3(l, l, 0)), 2);
-	scn.world.add(quad(vec3(0.213, l - eps, -0.227), vec3(0.343, l - eps, -0.227), vec3(0.213, l - eps, -0.332)), 6, 1,1);
+	scn.world.add(quad(vec3(0.213, l - eps, -0.227), vec3(0.343, l - eps, -0.227), vec3(0.213, l - eps, -0.332)), 6, 1, 1);
 	scn.world.add(sphere(vec3(l / 4, 0.1, -l / 4, 0.1)), 0);
-	scn.world.add(sphere(vec3(l-l / 4, 0.1, -l / 4, 0.1)), 4);
-	scn.world.add(sphere(vec3(l/2, 0.1, -l+l / 4, 0.1)), 5);
+	scn.world.add(sphere(vec3(l - l / 4, 0.1, -l / 4, 0.1)), 4);
+	scn.world.add(sphere(vec3(l / 2, 0.1, -l + l / 4, 0.1)), 5);
 	scn.opt = options();
 	scn.opt.sky = false;
 	scn.cam.exposure = 1.f;
 	scn.opt.bounces = 10;
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
-	scn.cam.setup(matrix(vec3(l/2, 0.2f, l),vec3(0)), 40, 16.f);
+	scn.cam.setup(matrix(vec3(l / 2, 0.2f, l), vec3(0)), 40, 16.f);
 	en_bvh = 0;
 }
 void scn6(scene& scn) {
 	scn.world.clear();
 
-	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0),vec3(0.5,0.5,1),1,1.2);
+	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0), vec3(0.5, 0.5, 1), 1, 1.2);
 	albedo bro(vec3(0.4, 0.2, 0.0, 1), vec3(0, 0, 1));
 	albedo red(vec3(0.63, 0.28, 0.25, 1), vec3(0.5, 0, 0.1));
 	scn.world.add_mat(bro, mat_mix);
 	scn.world.add_mat(gre, mat_mix);
 	scn.world.add_mat(red, mat_ggx);
 
-	vector<tri> gourd = load_OBJ("gourd.obj", 0,0.5f);
-	vector<tri> teapot = load_OBJ("teapot.obj", 0,0.25f);
-//	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0,0.01f);
-	scn.world.add(vec3(0,1,0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
-	scn.world.add(vec3(-0.3,1.79,-1),gourd, 1);
-	scn.world.add(vec3(0.7, 1, -1),teapot, 2);
+	vector<tri> gourd = load_OBJ("gourd.obj", 0, 0.5f);
+	vector<tri> teapot = load_OBJ("teapot.obj", 0, 0.25f);
+	//	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0,0.01f);
+	scn.world.add(vec3(0, 1, 0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
+	scn.world.add(vec3(-0.3, 1.79, -1), gourd, 1);
+	scn.world.add(vec3(0.7, 1, -1), teapot, 2);
 	//scn.world.add(vec3(0, 1.8, -0.5),dragon, 2);
 	scn.opt = options();
 	scn.cam.exposure = 1.f;
@@ -161,8 +161,8 @@ void scn7(scene& scn) {
 	albedo bro(vec3(0.4, 0.2, 0.0, 1), vec3(0, 0, 1));
 	albedo red(vec3(0.63, 0.28, 0, 1), vec3(0.5, 0, 0.1));
 	scn.world.add_mat(red, mat_ggx);
-	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0,0.01f);
-	scn.world.add(vec3(0, 1.8, -0.5),dragon, 0);
+	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0, 0.01f);
+	scn.world.add(vec3(0, 1.8, -0.5), dragon, 0);
 	scn.opt = options();
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
@@ -211,10 +211,10 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 			throw "File not found !";
 	}
 	vector<char> buffer;
-	buffer.resize(1024*1024, 0);
+	buffer.resize(1024 * 1024, 0);
 	file.rdbuf()->pubsetbuf(&buffer[0], buffer.size());
 	int size = file.tellg();;
-	v.reserve(size/2);
+	v.reserve(size / 2);
 	vt.reserve(size / 2);
 	vn.reserve(size / 2);
 	fv.reserve(size / 2);
@@ -249,8 +249,6 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 		}
 		else if (pref == "f")
 		{
-			int cnt = 0;
-			int tmp = 0;
 			xyz buff = {};
 			ss >> buff.x >> buff.y >> buff.z;
 			buff.x -= 1;
@@ -266,10 +264,9 @@ std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 		vec3 a = scale * v[fv[i].all[0]];
 		vec3 b = scale * v[fv[i].all[1]];
 		vec3 c = scale * v[fv[i].all[2]];
-		tris[i] = flip ? tri(a,c,b) : tri(a, b, c);
+		tris[i] = flip ? tri(a, c, b) : tri(a, b, c);
 		//if (vn.size() > 0) tris[i] = tri(a, b, c, vn[fv[i].x()], vn[fv[i].y()], vn[fv[i].z()]);
 	}
-
 	std::cout << "Succesfully loaded: " << name << "\n";
 	std::cout << "No of tris: " << tris.size() << "\n";
 	//Loaded success

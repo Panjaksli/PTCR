@@ -9,7 +9,6 @@ public:
 	//Definitions
 
 	__forceinline bool hit(const ray& r, hitrec& rec) const {
-
 		if (!bbox.hit(r)) return false;
 		bool hit = false;
 		for (auto& obj : skp_bvh)hit |= obj.hit(r, rec);
@@ -44,6 +43,8 @@ public:
 		const bvh_node& node = bvh[id];
 		if (node.flag)
 		{
+	//second approach is faster... just because of better memory locality ? program jumps to nodes in the right order, first the closer node, then the further
+	//however trying to be extra smart and stopping the recursion at the closest intersection within node, causes program to go haywire and miss all the nodes (still not sure why)
 #if 0
 			bool h1 = bvh[node.n1].bbox.hit(r);
 			bool h2 = bvh[node.n2].bbox.hit(r);
@@ -52,17 +53,15 @@ public:
 			else if (h2)return hit_bvh(r, rec, node.n2);
 			else return false;
 #else
-			//second approach is faster... just because of better memory locality ? program jumps to nodes in the right order, first the closer node, then the further
-			//however trying to be extra smart and stopping the recursion at the closest intersection within node, causes program to go haywire and miss all the nodes (still not sure why)
-		float t1 = bvh[node.n1].bbox.hit(r, rec.t);
-		float t2 = bvh[node.n2].bbox.hit(r, rec.t);
-		if (t1 < infp && t2 < infp) {
-			if (t1 < t2) return hit_bvh(r, rec, node.n1) + hit_bvh(r, rec, node.n2);	
-			else return hit_bvh(r, rec, node.n2) + hit_bvh(r, rec, node.n1);
-		}
-		else if (t1 < infp)return hit_bvh(r, rec, node.n1);
-		else if (t2 < infp)return hit_bvh(r, rec, node.n2);
-		else return false;
+			float t1 = bvh[node.n1].bbox.hit(r, rec.t);
+			float t2 = bvh[node.n2].bbox.hit(r, rec.t);
+			if (t1 < infp && t2 < infp) {
+				if (t1 <= t2) return hit_bvh(r, rec, node.n1) + hit_bvh(r, rec, node.n2);
+				else return hit_bvh(r, rec, node.n2) + hit_bvh(r, rec, node.n1);
+			}
+			else if (t1 < infp)return hit_bvh(r, rec, node.n1);
+			else if (t2 < infp)return hit_bvh(r, rec, node.n2);
+			else return false;
 #endif
 		}
 		else {

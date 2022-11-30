@@ -5,7 +5,12 @@
 #else 
 #include "vec3_scalar.h"
 #endif
-
+struct vec3f {
+	vec3f(float t) :x(t), y(t), z(t) {}
+	vec3f(vec3 t) :x(t.x()), y(t.y()), z(t.z()) {}
+	vec3f(float x, float y, float z=0):x(x),y(y),z(){}
+	float x, y, z;
+};
 //common functions
 inline vec3 fma(vec3 a, vec3 b, vec3 c) {
 	return a * b + c;

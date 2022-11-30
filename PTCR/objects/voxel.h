@@ -23,7 +23,7 @@ public:
 		vec3 tmax = max(t1, t2);
 		float mint = max(tmin);
 		float maxt = min(tmax);
-		if (mint > maxt || maxt <= 0) return false;
+		if (mint > maxt || maxt < 0) return false;
 		bool face = mint > 0;
 		float t = face ? mint : maxt;
 		if (inside(t, eps2, rec.t))

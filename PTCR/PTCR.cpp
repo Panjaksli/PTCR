@@ -56,7 +56,6 @@ int main()
 	int scn_n = 1;
 	int node_size = 8;
 	scn_load(Scene, scn_n, node_size);
-	matrix T;
 	vec3 TP = Scene.sun_pos.P();
 	vec3 TA = Scene.sun_pos.A;
 	printf("init done!!!\n");
@@ -76,6 +75,7 @@ int main()
 				if (handle.rmb) {
 					int x, y;
 					SDL_GetMouseState(&x, &y);
+					matrix T;
 					id = Scene.get_id(y, x, T);
 					if (tap_to_focus)
 						Scene.cam_manufocus(y, x);
@@ -113,6 +113,8 @@ int main()
 				moving = 1;
 				node_size = 8;
 				scn_load(Scene,scn_n, node_size);
+				TP = Scene.sun_pos.P();
+				TA = Scene.sun_pos.A;
 			}
 			ImGui::DragFloat("Speed", &Scene.cam.speed, 0.001, 0.001, 1e3f, "% .2f");
 			if (ImGui::DragFloat("FOV", &Scene.cam.fov, 0.1, 0.001, 179, "%.1f"))
@@ -176,7 +178,7 @@ int main()
 			ImGui::Begin("Object properties");
 			
 			if (ImGui::InputInt("BVH Nodes", &node_size, 1, 1)) {
-				node_size = node_size <= 1 ? 1 : node_size;
+				node_size = node_size <= 2 ? 2 : node_size;
 				node_size = node_size >= 64 ? 64 : node_size;
 				Scene.world.rebuild_bvh(1, node_size);
 			}
@@ -197,14 +199,12 @@ int main()
 			}
 			if (ImGui::DragFloat3("Pos", TP._xyz, 0.01))
 			{
-				T.set_P(TP);
-				Scene.set_trans(id, T, node_size);
+				Scene.set_trans(id, matrix(TP,TA), node_size);
 				moving = 1;
 			}
 			if (ImGui::DragFloat3("Rot", TA._xyz, 0.01))
 			{
-				T.set_A(TA);
-				Scene.set_trans(id, T, node_size);
+				Scene.set_trans(id, matrix(TP, TA), node_size);
 				moving = 1;
 			}
 			ImGui::End();

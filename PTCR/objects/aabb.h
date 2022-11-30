@@ -16,18 +16,18 @@ public:
 		return box1;
 	}
 	inline void join(const aabb& box) {
-		if (eq0(pmin) && eq0(pmax))
+		if (neq0(pmin) || neq0(pmax))
+		{
+			pmin = (min(pmin, box.pmin)), pmax = (max(pmax, box.pmax));
+		}
+		else
 		{
 			pmin = box.pmin;
 			pmax = box.pmax;
 		}
-		else
-		{
-			pmin = (min(pmin, box.pmin)), pmax = (max(pmax, box.pmax));
-		}
 	}
 	inline void pad() {
-		vec3 delta = (0.5f * eps) * vec_lt(fabs(pmax - pmin), eps);
+		vec3 delta = (0.5f * eps2) * vec_lt(fabs(pmax - pmin), eps2);
 		pmin -= delta;
 		pmax += delta;
 	}
