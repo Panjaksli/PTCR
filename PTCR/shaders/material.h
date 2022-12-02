@@ -16,11 +16,11 @@ public:
 };
 
 enum mat_enum {
-	mat_mix, mat_ggx, mat_vnd, mat_lig
+	mat_mix, mat_ggx, mat_vnd, mat_lig, mat_las
 };
 
 namespace material {
-	constexpr int mat_cnt = 4;
+	constexpr int mat_cnt = 5;
 	__forceinline void mix(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		//simple mix of lambertian and mirror reflection/transmission + emission
 		vec3 rgb = tex.rgb(rec.u, rec.v);
@@ -151,8 +151,16 @@ namespace material {
 	__forceinline void light(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
 		vec3 mer = tex.mer(rec.u, rec.v);
+		mat.N = rec.N;
 		float em = mer.y();
 		mat.emis = em * rgb;
+	}
+	__forceinline void laser(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
+		vec3 rgb = tex.rgb(rec.u, rec.v);
+		vec3 mer = tex.mer(rec.u, rec.v);
+		mat.N = rec.N;
+		float em = mer.y();
+		mat.emis = absdot(rec.N, r.D) * em * rgb;
 	}
 }
 class mat_var {
@@ -165,6 +173,7 @@ public:
 		case mat_ggx: return material::ggx(r, rec, tex, mat);
 		case mat_vnd: return material::vndf(r, rec, tex, mat);
 		case mat_lig: return material::light(r, rec, tex, mat);
+		case mat_las: return material::laser(r, rec, tex, mat);
 		default: return;
 		};
 	}

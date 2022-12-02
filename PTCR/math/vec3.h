@@ -8,7 +8,7 @@
 struct vec3f {
 	vec3f(float t) :x(t), y(t), z(t) {}
 	vec3f(vec3 t) :x(t.x()), y(t.y()), z(t.z()) {}
-	vec3f(float x, float y, float z=0):x(x),y(y),z(){}
+	vec3f(float x, float y, float z = 0) :x(x), y(y), z() {}
 	float x, y, z;
 };
 //common functions
@@ -145,24 +145,80 @@ inline vec3 unrgb(const uint& rgb) {
 	v.xyz[3] = (rgb >> 24) & 0x000000ff;
 	return v * (1.f / 255.f);
 }
-
-inline vec3 med9(vec3* x) {
-	auto cmp_lum = [](const vec3& a, const vec3& b) {
-		return luminance(a) < luminance(b);
-	};
-	std::nth_element(x, x + 4, x + 9, cmp_lum);
-	return x[4];
-}
+inline bool cmp_lum(const vec3& a, const vec3& b) {
+	return luminance(a) < luminance(b);
+};
+inline bool cmp_avg(const vec3& a, const vec3& b) {
+	return sum(a) < sum(b);
+};
+inline bool cmp_val(const float& a, const float& b) {
+	return a < b;
+};
 inline vec3 avg9(vec3* x) {
 	vec3 sum;
 	for (int i = 0; i < 9; i++)
 		sum += x[i];
 	return sum * (1.f / 9.f);
 }
-inline vec3 med(vec3* x, const int n) {
-	auto cmp_lum = [](const vec3& a, const vec3& b) {
-		return luminance(a) < luminance(b);
+inline vec3 gaus1d9(vec3* x) {
+	vec3 sum;
+	float kernel[9] = { 0, 0.06f, 0.061f,0.242f,0.383f,0.242f,0.061f,0.06f,0 };
+	for (int i = 0; i < 9; i++)
+		sum += x[i] * kernel[i];
+	return sum;
+}
+inline vec3 med9(vec3* x) {
+	float r[9], g[9], b[9];
+	for (int i = 0; i < 9; i++)
+	{
+		r[i] = x[i].x();
+		g[i] = x[i].y();
+		b[i] = x[i].z();
+	}
+	std::nth_element(r, r + 4, r + 9, cmp_val);
+	std::nth_element(g, g + 4, g + 9, cmp_val);
+	std::nth_element(b, b + 4, b + 9, cmp_val);
+	return vec3(r[4], g[4], b[4], x[4].w());
+}
+inline vec3 med16(vec3* x) {
+	float r[16], g[16], b[16];
+	for (int i = 0; i < 16; i++)
+	{
+		r[i] = x[i].x();
+		g[i] = x[i].y();
+		b[i] = x[i].z();
+	}
+	std::nth_element(r, r + 8, r + 16, cmp_val);
+	std::nth_element(g, g + 8, g + 16, cmp_val);
+	std::nth_element(b, b + 8, b + 16, cmp_val);
+	return vec3(r[8], g[8], b[8], x[8].w());
+}
+inline vec3 avg8(vec3* x) {
+	vec3 sum;
+	for (int i = 0; i < 9; i++)
+		sum += i != 4 ? x[i] : 0;
+	return sum * (1.f / 8.f);
+}
+inline vec3 gaus9(vec3* x) {
+	vec3 sum;
+	float kernel[9] = {
+	1 / 16.f, 1 / 8.f, 1 / 16.f,
+	1 / 8.f, 1 / 4.f, 1 / 8.f,
+	1 / 16.f, 1 / 8.f, 1 / 16.f,
 	};
+	for (int i = 0; i < 9; i++)
+		sum += x[i] * kernel[i];
+	return sum;
+}
+inline vec3 frfly9(vec3* x) {
+	vec3 sum;
+	vec3 mid = x[4];
+	vec3 med = avg8(x);
+	return cmp_lum(mid, med) ? mid : med;
+}
+
+
+inline vec3 med(vec3* x, const int n) {
 	std::nth_element(x, x + n / 2, x + n, cmp_lum);
 	return x[n / 2];
 }

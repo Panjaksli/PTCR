@@ -14,30 +14,6 @@ bool texture::load(const std::string filename) {
 	return data != nullptr;
 }
 
-void save_png(void* img, uint w, uint h) {
-	static char name[20];
-	time_t now = time(0);
-	strftime(name, sizeof(name), "%Y%m%d_%H%M%S", localtime(&now));
-	std::string file(name);
-	file = "screenshots/" + file + ".png";
-	uint* buff = new uint[w * h];
-	for (int i = 0; i < w * h; i++) {
-		uint bgra = ((uint*)img)[i];
-		uint b = (bgra & 0xff) << 16;
-		uint g = (bgra & 0xff00);
-		uint r = (bgra & 0xff0000) >> 16;
-		uint a = (bgra & 0xff000000);
-		buff[i] = b + g + r + a;
-	}
-	if (stbi_write_png(file.c_str(), w, h, 4, buff, 4 * w))
-	{
-		cout << "Saved file in: " << file << "\n";
-	}
-	else {
-		throw "Save failed !!!\n";
-	}
-	delete[]buff;
-}
 void save_hdr(vector<vec3>& img, uint w, uint h, int spp) {
 	static char name[20];
 	time_t now = time(0);
@@ -46,17 +22,30 @@ void save_hdr(vector<vec3>& img, uint w, uint h, int spp) {
 	strftime(name, sizeof(name), "%Y%m%d_%H%M%S", &tm);
 	std::string file(name);
 	file = "screenshots/" + file + "_" + std::to_string(spp) + "SPP.png";
-	uint* buff = new uint[w * h];
+	vector<uint> buff((size_t)w * h);
+
 	for (uint i = 0; i < img.size(); i++)
-	{
 		rgb(img[i], buff[i]);
-	}
-	if (stbi_write_png(file.c_str(), w, h, 4, buff, 4 * w))
-	{
+	if (stbi_write_png(file.c_str(), w, h, 4, &buff[0], 4 * w))
 		cout << "Saved file in: " << file << "\n";
+	else throw "Save failed !!!\n";
+
+	vector<vec3> tmp(w * h);
+#pragma omp parallel for collapse(2) schedule(static,64)
+	for (int i = 1; i < h - 1; i++) {
+		for (int j = 1; j < w - 1; j++) {
+			vec3 window[9];
+			for (int k = 0; k < 3; k++)
+				for (int l = 0; l < 3; l++)
+					window[k * 3 + l] = img[(i + k - 1) * w + j + l - 1];
+			tmp[i * w + j] = med9(window);
+		}
 	}
-	else {
-		throw "Save failed !!!\n";
-	}
-	delete[]buff;
+	for (uint i = 0; i < tmp.size(); i++)
+		rgb(tmp[i], buff[i]);
+	file = "screenshots/" + std::string(name) + "_" + std::to_string(spp) + "SPP_den.png";
+	if (stbi_write_png(file.c_str(), w, h, 4, &buff[0], 4 * w))
+		cout << "Saved file in: " << file << "\n";
+	else throw "Save failed !!!\n";
+		
 }

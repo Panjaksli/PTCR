@@ -58,6 +58,7 @@ int main()
 	scn_load(Scene, scn_n, node_size);
 	vec3 TP = Scene.sun_pos.P();
 	vec3 TA = Scene.sun_pos.A;
+	float fogdens = 0.01f;
 	printf("init done!!!\n");
 	while (running) {
 		frametime = SDL_GetPerformanceCounter();
@@ -115,6 +116,7 @@ int main()
 				scn_load(Scene,scn_n, node_size);
 				TP = Scene.sun_pos.P();
 				TA = Scene.sun_pos.A;
+				fogdens = log10f(-Scene.opt.ninv_fog);
 			}
 			ImGui::DragFloat("Speed", &Scene.cam.speed, 0.001, 0.001, 1e3f, "% .2f");
 			if (ImGui::DragFloat("FOV", &Scene.cam.fov, 0.1, 0.001, 179, "%.1f"))
@@ -151,6 +153,9 @@ int main()
 			if (ImGui::DragFloat("Ray lifetime", &Scene.opt.p_life, 0.01, 0.01, 1.f, "%.2f", CLAMP))
 				Scene.opt.i_life = 1.f / Scene.opt.p_life, moving = 1;
 			ImGui::InputInt("Samples", &Scene.opt.samples, 1, 1);
+			if (ImGui::DragFloat("Fog density", &fogdens, -0.01, -1, 12, "1e-%.2f", CLAMP)) {
+				Scene.opt.ninv_fog = -1.f * pow(10,fogdens); moving = 1;
+			}
 			moving |= ImGui::InputInt("Bounces", &Scene.opt.bounces, 1, 1);
 			moving |= ImGui::Checkbox("Light sampling", &Scene.opt.li_sa); ImGui::SameLine();
 			moving |= ImGui::Checkbox("Sun sampling", &Scene.opt.sun_sa);
@@ -163,8 +168,8 @@ int main()
 			moving |= ImGui::Checkbox("Debug UV", &Scene.opt.dbg_uv);	ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug t", &Scene.opt.dbg_t);
 			moving |= ImGui::Checkbox("Normal maps", &use_normal_maps); ImGui::SameLine();
-			moving |= ImGui::Checkbox("Recursion", &Scene.opt.recur);
-			moving |= ImGui::Checkbox("BVH", &en_bvh); ImGui::SameLine();
+			moving |= ImGui::Checkbox("Fog", &Scene.opt.en_fog);
+			moving |= ImGui::Checkbox("BVH", &Scene.world.en_bvh); ImGui::SameLine();
 			static bool denoise = 1;
 			ImGui::Checkbox("Denoise", &denoise);// ImGui::SameLine();
 			moving |= !denoise;

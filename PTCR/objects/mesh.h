@@ -305,7 +305,6 @@ struct mesh_raw {
 	mesh_raw(const quad* m, uint mat) : bbox(m->get_box()), q(m), mat(mat), id(o_qua) {}
 	mesh_raw(const sphere* m, uint mat) : bbox(m->get_box()), s(m), mat(mat), id(o_sph) {}
 	mesh_raw(const voxel* m, uint mat) :bbox(m->get_box()), v(m), mat(mat), id(o_vox) {}
-
 	__forceinline bool hit(const ray& r, hitrec& rec) const
 	{
 		if (!bbox.hit(r))return false;

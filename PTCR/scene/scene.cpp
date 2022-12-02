@@ -76,7 +76,7 @@ void scene::Render(uint *disp, uint pitch) {
 		else if (opt.dbg_t)  col = raycol_t(r);
 		else
 #endif
-			col = raycol(r);
+			col = opt.en_fog ? raycol_fog(r) : raycol(r);
 		cam.pixel(i, j, col * invs);
 	}
 	cam.moving = 0;

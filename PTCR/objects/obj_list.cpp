@@ -67,11 +67,15 @@ void obj_list::obj_unroll() {
 	}
 }
 void obj_list::rebuild_bvh(bool print, uint node_size) {
+	time_t t1 = clock();
 	bvh.clear();
 #pragma omp parallel for schedule(static,64)
 	for (auto& obj : obj_bvh)
 		obj.update_box();
 	split_bvh(0, obj_bvh.size(), node_size);
+	float t2 = clock() - t1;
+	if (print)
+		printf("\n%d %f\n", (int)bvh.size(), t2 / CLOCKS_PER_SEC);
 }
 
 void obj_list::build_bvh(bool print, uint node_size) {

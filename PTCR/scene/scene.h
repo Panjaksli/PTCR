@@ -9,9 +9,11 @@ struct options {
 	float res_scale = 1.f;
 	float res_rate = 1.f;
 	float p_life = 0.9f;
-	float i_life = 1.f/0.9f;
+	float i_life = 1.f / 0.9f;
+	float ninv_fog = -100.f;
 	int bounces = 10;
 	int samples = 2;
+	bool en_fog = 0;
 	bool sky = 1;
 	bool sun_sa = 1;
 	bool li_sa = 1;
@@ -81,14 +83,41 @@ private:
 		else if (opt.li_sa) return sa_li(mat, P, p1, p2);
 		else return sa_none(mat, P, p1, p2);
 	}
-	__forceinline ray sa_fog(const vec3& P, float& p1, float& p2) const
+	__forceinline ray sa_fog(bool first, const vec3& P, float& p1, float& p2) const
 	{
-		sph_pdf fog;
-		sun_pdf sun(sun_pos, P);
-		mix_pdf<sun_pdf, sph_pdf> mix(sun, fog);
-		ray R(P, mix.generate());
-		p1 = fog.value(R.D);
-		p2 = mix.value(R.D);
+		ray R;
+		bool lisa = opt.li_sa, sunsa = opt.sun_sa;
+		if (first && dot(P, P) > infp) lisa = 0;
+		if (lisa && sunsa) {
+			sph_pdf fog;
+			lig_pdf lights(world, P);
+			sun_pdf sun(sun_pos, P);
+			mix_pdf<sun_pdf, lig_pdf> ill(sun, lights);
+			mix_pdf<sph_pdf, mix_pdf<sun_pdf, lig_pdf>> mix(fog, ill);
+			R = ray(P, mix.generate());
+			p1 = fog.value(R.D);
+			p2 = mix.value(R.D);
+		}
+		else if (sunsa) {
+			sph_pdf fog;
+			sun_pdf sun(sun_pos, P);
+			mix_pdf<sun_pdf, sph_pdf> mix(sun, fog);
+			R = ray(P, mix.generate());
+			p1 = fog.value(R.D);
+			p2 = mix.value(R.D);
+		}
+		else if (lisa) {
+			sph_pdf fog;
+			lig_pdf lights(world, P);
+			mix_pdf<sph_pdf, lig_pdf> mix(fog, lights);
+			R = ray(P, mix.generate());
+			p1 = fog.value(R.D);
+			p2 = mix.value(R.D);
+		}
+		else {
+			R = ray(P, sa_sph());
+			p1 = p2 = 1;
+		}
 		return R;
 	}
 	__forceinline ray sa_li_sun(const matrec& mat, const vec3& P, float& p1, float& p2) const
@@ -126,28 +155,44 @@ private:
 	__forceinline ray sa_none(const matrec& mat, const vec3& P, float& p1, float& p2) const
 	{
 		ray R(P, mat.L);
-		p1 = 1.f;
-		p2 = 1.f;
+		p1 = p2 = 1.f;
 		return R;
 	}
-	__forceinline vec3 path_trace(const ray& r, int depth)const {
-		hitrec rec;
-		if (depth <= -1)return 0;
-		if (!world.hit(r, rec)) return sky(r.D);
-		if (rafl() >= opt.p_life)return 0;
-		return opt.i_life * sample_recursive(r, rec, depth);
-	}
-
 	__forceinline vec3 raycol(const ray& r)const {
 		hitrec rec; vec3 col;
-		int depth = opt.bounces;
 		if (!world.hit(r, rec)) return opt.samples * sky(r.D);
 		for (int i = 0; i < opt.samples; i++)
-		{
-			col += opt.recur ? sample_recursive(r, rec, depth) : sample_iterative(r, rec, depth);
-		}
+			col += itera_pt(r, rec, opt.bounces);
 		return col;
 	}
+	__forceinline vec3 raycol_fog(const ray& r)const {
+
+		vec3 col;
+		for (int i = 0; i < opt.samples; i++)
+			col += trace(r, opt.bounces, 1);
+		return col;
+		
+	}
+	__forceinline vec3 trace(const ray& r, int depth,bool first = 0)const {
+		hitrec rec;
+		if (depth <= -1)return 0;
+		bool hit = world.hit(r, rec);
+		float ft = opt.ninv_fog * logf(rafl());
+		if (ft < rec.t && (hit ? rec.face : 1)) {
+			float p1, p2;
+			ray sr = sa_fog(first, r.at(ft), p1, p2);
+			hitrec srec;
+			bool hit = world.hit(sr, srec);
+			if (!hit)return p1 / p2 * sky(sr.D);
+			else return p1 / p2 * recur_pt(sr, srec, depth);
+		}
+		else {
+			if (!hit) return sky(r.D);
+			if (rafl() >= opt.p_life)return 0;
+			else return opt.i_life * recur_pt(r, rec, depth);
+		}
+	}
+
 	__forceinline vec3 sky(vec3 V) const
 	{
 		if (!opt.sky)return 0;
@@ -165,54 +210,54 @@ private:
 			return skycol;
 	}
 
-	__forceinline vec3 sample_recursive(const ray& r, const hitrec& rec, int depth) const;
-	__forceinline vec3 sample_iterative(const ray& r, const hitrec& rec, int depth) const;
+	__forceinline  vec3 recur_pt(const ray& r, const hitrec& rec, int depth) const {
+		matrec mat; vec3 aten;
+		world.materials[rec.mat].sample(r, rec, mat);
+		if (mat.sd) {
+			if (mat.sd == 1)
+				aten += mat.scat * trace(ray(mat.P, mat.L, true), depth - 1);
+			else
+			{
+				ray R; float p1, p2;
+				R = sa_diff(mat, mat.P, p1, p2);
+				if (p1 > 0) aten += (p1 / p2) * mat.scat * trace(R, depth - 1);
+			}
+			return aten + mat.emis;
+		}
+		else return mat.emis;
+	}
+	__forceinline  vec3 itera_pt(const ray& sr, const hitrec& srec, int depth) const {
+		vec3 col(0), aten(1.f); ray r = sr;
+		for (int i = 0; i < depth + 1; i++)
+		{
+			hitrec rec; matrec mat;
+			if (i == 0) rec = srec;
+			else if (!world.hit(r, rec)) return col += aten * sky(r.D);
+			else if (rafl() >= opt.p_life) break;
+			else aten *= opt.i_life;
+			world.materials[rec.mat].sample(r, rec, mat);
+			col += mat.emis * aten;
+			if (mat.sd)
+			{
+				if (mat.sd == 1)
+					r = ray(mat.P, mat.L, true);
+				else
+				{
+					float p1, p2;
+					r = sa_diff(mat, mat.P, p1, p2);
+					if (p1 > 0)aten *= (p1 / p2);
+					else break;
+				}
+				aten *= mat.scat;
+			}
+			else break;
+		}
+		return col;
+	}
 
 };
 
-__forceinline  vec3 scene::sample_recursive(const ray& r, const hitrec& rec, int depth) const {
-	matrec mat; vec3 aten;
-	world.materials[rec.mat].sample(r, rec, mat);
-	if (mat.sd) {
-		if (mat.sd == 1)
-			aten += mat.scat * path_trace(ray(mat.P, mat.L, true), depth - 1);
-		else
-		{
-			ray R; float p1, p2;
-			R = sa_diff(mat, mat.P, p1, p2);
-			if (p1 > 0) aten += (p1 / p2) * mat.scat * path_trace(R, depth - 1);
-		}
-		return aten + mat.emis;
-	}
-	else return mat.emis;
-}
-__forceinline  vec3 scene::sample_iterative(const ray& sr, const hitrec& srec, int depth) const {
-	vec3 col(0), aten(1.f); ray r = sr;
-	for (int i = 0; i < depth + 1; i++)
-	{
-		hitrec rec; matrec mat;
-		if (i == 0) rec = srec;
-		else if (!world.hit(r, rec)) return col += aten * sky(r.D);
-		else if (rafl() >= opt.p_life) break;
-		else aten *= opt.i_life;
-		world.materials[rec.mat].sample(r, rec, mat);
-		col += mat.emis * aten;
-		if (mat.sd)
-		{
-			if (mat.sd == 1)
-				r = ray(mat.P, mat.L, true);
-			else
-			{
-				float p1, p2;
-				r = sa_diff(mat, mat.P, p1, p2);
-				if (p1 > 0)aten *= (p1 / p2);
-				else break;
-			}
-			aten *= mat.scat;
-		}
-		else break;
-	}
-	return col;
-}
+
+
 
 

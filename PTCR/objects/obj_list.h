@@ -14,7 +14,7 @@ public:
 		for (auto& obj : skp_bvh)hit |= obj.hit(r, rec);
 		if (en_bvh) {
 			if (!bvh[0].bbox.hit(r))return hit;
-			return hit + hit_bvh(r, rec, 0);
+			return hit + traverse_bvh(r, rec, 0);
 		}
 		else
 		{
@@ -39,7 +39,7 @@ public:
 		return skp_bvh[light].rand_from();
 	}
 	// 0th and last + 1 element
-	__forceinline bool hit_bvh(const ray& r, hitrec& rec, uint id = 0) const {
+	__forceinline bool traverse_bvh(const ray& r, hitrec& rec, uint id = 0) const {
 		const bvh_node& node = bvh[id];
 		if (node.flag)
 		{
@@ -48,19 +48,19 @@ public:
 #if 0
 			bool h1 = bvh[node.n1].bbox.hit(r);
 			bool h2 = bvh[node.n2].bbox.hit(r);
-			if (h1 && h2)return hit_bvh(r, rec, node.n1) + hit_bvh(r, rec, node.n2);
-			else if (h1)return hit_bvh(r, rec, node.n1);
-			else if (h2)return hit_bvh(r, rec, node.n2);
+			if (h1 && h2)return traverse_bvh(r, rec, node.n1) + traverse_bvh(r, rec, node.n2);
+			else if (h1)return traverse_bvh(r, rec, node.n1);
+			else if (h2)return traverse_bvh(r, rec, node.n2);
 			else return false;
 #else
 			float t1 = bvh[node.n1].bbox.hit(r, rec.t);
 			float t2 = bvh[node.n2].bbox.hit(r, rec.t);
 			if (t1 < infp && t2 < infp) {
-				if (t1 <= t2) return hit_bvh(r, rec, node.n1) + hit_bvh(r, rec, node.n2);
-				else return hit_bvh(r, rec, node.n2) + hit_bvh(r, rec, node.n1);
+				if (t1 <= t2) return traverse_bvh(r, rec, node.n1) + traverse_bvh(r, rec, node.n2);
+				else return traverse_bvh(r, rec, node.n2) + traverse_bvh(r, rec, node.n1);
 			}
-			else if (t1 < infp)return hit_bvh(r, rec, node.n1);
-			else if (t2 < infp)return hit_bvh(r, rec, node.n2);
+			else if (t1 < infp)return traverse_bvh(r, rec, node.n1);
+			else if (t2 < infp)return traverse_bvh(r, rec, node.n2);
 			else return false;
 #endif
 		}
@@ -138,6 +138,7 @@ public:
 	vector<bvh_node> bvh;
 	vector<mat_var> materials;
 	float lw;
+	bool en_bvh = 1;
 };
 template <typename T>
 void obj_list::add(const T& object, uint mat, bool skip_bvh, bool is_light)
