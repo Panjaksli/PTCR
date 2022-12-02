@@ -10,10 +10,10 @@ struct options {
 	float res_rate = 1.f;
 	float p_life = 0.9f;
 	float i_life = 1.f / 0.9f;
-	float ninv_fog = -100.f;
+	float ninv_fog = -10.f;
 	int bounces = 10;
 	int samples = 2;
-	bool en_fog = 0;
+	bool en_fog = 1;
 	bool sky = 1;
 	bool sun_sa = 1;
 	bool li_sa = 1;
@@ -41,6 +41,7 @@ public:
 	void cam_autofocus();
 	void cam_manufocus(float py = 0, float px = 0);
 	void set_trans(obj_id id, const matrix& T, uint node_size = 8);
+	void out_optix(vector<vec3>& I, vector<vec3>& A, vector<vec3>& N)const;
 	void Render(uint* disp, uint pitch);
 private:
 	inline vec3 raycol_face(const ray& r)const {
@@ -61,6 +62,7 @@ private:
 		vec3 col = (mat.N + 1.f) * 0.5f;
 		return col * col;
 	}
+	
 	inline vec3 raycol_uv(const ray& r)const {
 		hitrec rec;
 		if (!world.hit(r, rec)) return 0;
@@ -158,22 +160,22 @@ private:
 		p1 = p2 = 1.f;
 		return R;
 	}
-	__forceinline vec3 raycol(const ray& r)const {
+	__forceinline vec3 raycol(const ray& r, float invs)const {
 		hitrec rec; vec3 col;
-		if (!world.hit(r, rec)) return opt.samples * sky(r.D);
+		if (!world.hit(r, rec)) return sky(r.D);
 		for (int i = 0; i < opt.samples; i++)
-			col += itera_pt(r, rec, opt.bounces);
+			col += invs * itera_pt(r, rec, opt.bounces);
 		return col;
 	}
-	__forceinline vec3 raycol_fog(const ray& r)const {
+	__forceinline vec3 raycol_fog(const ray& r, float invs)const {
 
 		vec3 col;
 		for (int i = 0; i < opt.samples; i++)
-			col += trace(r, opt.bounces, 1);
+			col += invs * trace(r, opt.bounces, 1);
 		return col;
-		
+
 	}
-	__forceinline vec3 trace(const ray& r, int depth,bool first = 0)const {
+	__forceinline vec3 trace(const ray& r, int depth, bool first = 0)const {
 		hitrec rec;
 		if (depth <= -1)return 0;
 		bool hit = world.hit(r, rec);
@@ -258,6 +260,6 @@ private:
 };
 
 
-
+void save_hdr(const scene& scn);
 
 

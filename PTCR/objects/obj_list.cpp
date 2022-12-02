@@ -35,6 +35,8 @@ void obj_list::set_trans(obj_id id, const matrix& T, uint node_size) {
 	}
 	fit();
 }
+
+
 void obj_list::fit() {
 	bbox = aabb();
 	for (const auto& obj : objects)

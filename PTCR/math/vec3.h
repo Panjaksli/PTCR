@@ -168,6 +168,8 @@ inline vec3 gaus1d9(vec3* x) {
 	return sum;
 }
 inline vec3 med9(vec3* x) {
+	/*std::nth_element(x, x + 4, x + 9, cmp_lum);
+	return x[4];*/
 	float r[9], g[9], b[9];
 	for (int i = 0; i < 9; i++)
 	{

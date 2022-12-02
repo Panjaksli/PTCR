@@ -13,6 +13,8 @@ void scn8(scene& scn);
 std::vector<tri> load_OBJ(const char* name, vec3 off = 0, float scale = 1.f, bool flip_face = 0);
 
 inline void scn_load(scene& scn, int n, uint node_size = 8) {
+	scn.world.clear();
+	scn.opt = options();
 	switch (n) {
 	case 1: scn1(scn); break;
 	case 2: scn2(scn); break;

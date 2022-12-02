@@ -83,9 +83,9 @@ public:
 	template <typename T>
 	void add(const vector<T>& object, uint mat, bool skip_bvh = 0, bool is_light = 0);
 	template <typename T>
-	void add(vec3 off, const T& object, uint mat, bool skip_bvh = 0, bool is_light = 0);
+	void add(matrix off, const T& object, uint mat, bool skip_bvh = 0, bool is_light = 0);
 	template <typename T>
-	void add(vec3 off, const vector<T>& object, uint mat, bool skip_bvh = 0, bool is_light = 0);
+	void add(matrix off, const vector<T>& object, uint mat, bool skip_bvh = 0, bool is_light = 0);
 	void clear();
 	obj_id get_id(const ray& r, hitrec& rec) const;
 	void get_trans(const obj_id id, matrix& T) const;
@@ -114,10 +114,10 @@ private:
 		bbox.join(object.get_box());
 	}
 	template <typename T>
-	void add(vec3 off, const mesh<T>& object, bool skip_bvh = 0, bool is_light = 0)
+	void add(matrix off, const mesh<T>& object, bool skip_bvh = 0, bool is_light = 0)
 	{
 		mesh<T> tmp = object;
-		tmp.set_trans(matrix(off, 0));
+		tmp.set_trans(off);
 		add(tmp, skip_bvh, is_light);
 	}
 	static bool cmp_axis_x(const mesh_raw& a, const mesh_raw& b) {
@@ -152,12 +152,12 @@ void obj_list::add(const vector<T>& object, uint mat, bool skip_bvh, bool is_lig
 }
 
 template <typename T>
-void obj_list::add(vec3 off, const T& object, uint mat, bool skip_bvh, bool is_light)
+void obj_list::add(matrix off, const T& object, uint mat, bool skip_bvh, bool is_light)
 {
 	add(off, mesh<T>(object, mat), skip_bvh, is_light);
 }
 template <typename T>
-void obj_list::add(vec3 off, const vector<T>& object, uint mat, bool skip_bvh, bool is_light)
+void obj_list::add(matrix off, const vector<T>& object, uint mat, bool skip_bvh, bool is_light)
 {
 	add(off, mesh<T>(object, mat), skip_bvh, is_light);
 }

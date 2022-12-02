@@ -8,7 +8,7 @@
 
 
 void scn1(scene& scn) {
-	scn.world.clear();
+	
 	albedo gnd(vec3(0.8, 0.4, 0.3, 1), vec3(0, 0, 0));
 	albedo trans(vec3(0.7, 0.7, 0.99, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
 	albedo trans2(vec3(0.99, 0.7, 0.7, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
@@ -24,7 +24,7 @@ void scn1(scene& scn) {
 	scn.world.add(voxel(vec3(0, 3.001, -3, 0.576)), 2);
 	scn.world.add(voxel(vec3(0, 1.001, -3, 1)), 3);
 	scn.world.add(sphere(vec3(0, 1.001, -3, 0.999f)), 4);
-	scn.opt = options();
+	scn.opt.ninv_fog = -100;
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
 	scn.opt.bounces = 10;
@@ -34,11 +34,10 @@ void scn1(scene& scn) {
 	scn.world.en_bvh = 0;
 }
 void scn2(scene& scn) {
-	scn.world.clear();
+	
 	scn.opt.li_sa = 1;
-	albedo iron = albedo(texture("iron_block.png"), texture("iron_block_mer.png"), texture("iron_block_normal.png"), 10);
+	albedo iron(vec3(0.7, 0.7, 0.9), vec3(1, 0, 0));
 	albedo white(vec3(0.8, 0.8, 0.8), vec3(0, 5, 0));
-	albedo pbrcol(vec3(0.5, 0.1, 0.1), vec3(), texture("iron_block_normal.png"), 10);
 	scn.world.add_mat(albedo(vec3(0.8, 0.8, 0.8, 1), vec3(0, 0, 1)), mat_mix);
 	scn.world.add_mat(iron, mat_ggx);
 	scn.world.add_mat(white, mat_lig);
@@ -49,7 +48,7 @@ void scn2(scene& scn) {
 	room.emplace_back(quad(vec3(-1, 2, -1), vec3(3, 2, -1), vec3(-1, 2, 1)));
 	room.emplace_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 2, -1)));
 	room.emplace_back(quad(vec3(-1, 0, 1), vec3(3, 0, 1), vec3(-1, 2, 1)));
-	scn.opt = options();
+	scn.opt.ninv_fog = -10000;
 	scn.world.add(room, 0);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(1, 0, 0), vec3(0, 1, 0.999)), 1); //0.24 0 0.67
 	scn.world.add(voxel(vec3(0, 1.9, 0, 0.1)), 2, 1, 1);
@@ -58,7 +57,7 @@ void scn2(scene& scn) {
 	scn.world.en_bvh = 0;
 }
 void scn3(scene& scn) {
-	scn.world.clear();
+	
 
 	for (int i = 0; i <= 10; i++) {
 		for (int j = 0; j <= 10; j++) {
@@ -68,13 +67,13 @@ void scn3(scene& scn) {
 				scn.world.add(sphere(vec3(6 - j, 6 - i, -3 - k, 0.5)), i * 11 + j);
 		}
 	}
-	scn.opt = options();
+	scn.opt.ninv_fog = -100;
 	scn.sun_pos.set_A(vec3(1, 0, 1));
 	scn.cam.setup(matrix(vec3(1, 1, 10), vec3(0, 0, 0)), 47, 10);
 	scn.world.en_bvh = 1;
 }
 void scn4(scene& scn) {
-	scn.world.clear();
+	
 	albedo white(vec3(0.9, 0.9, 0.9, 1), vec3(0, 0, 1));
 	albedo light(vec3(0.4, 0.0, 0.7, 1), vec3(0, 100, 0));
 	albedo clear(vec3(1.f, 1.f, 1.f, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.5);
@@ -84,7 +83,7 @@ void scn4(scene& scn) {
 	scn.world.add(quad(vec3(-10, eps, -10), vec3(10, eps, -10), vec3(-10, eps, 10)), 0, 1);
 	scn.world.add(voxel(vec3(0, 1 + 10 * eps, 0, 1)), 1, 1, 1);
 	scn.world.add(sphere(vec3(3, 3, 3, 0.5)), 2, 1, 1);
-	scn.opt = options();
+	
 	scn.opt.sky = false;
 	scn.cam.exposure = 1.f;
 	scn.opt.bounces = 10;
@@ -94,7 +93,7 @@ void scn4(scene& scn) {
 	scn.world.en_bvh = 0;
 }
 void scn5(scene& scn) {
-	scn.world.clear();
+	
 	albedo white(vec3(0.73, 0.73, 0.73, 1), vec3(0, 0, 1));
 	albedo green(vec3(0.12, 0.45, 0.12, 1), vec3(0, 0, 1));
 	albedo red(vec3(0.45, 0.12, 0.12, 1), vec3(0, 0, 1));
@@ -119,7 +118,7 @@ void scn5(scene& scn) {
 	scn.world.add(sphere(vec3(l / 4, 0.1, -l / 4, 0.1)), 0);
 	scn.world.add(sphere(vec3(l - l / 4, 0.1, -l / 4, 0.1)), 4);
 	scn.world.add(sphere(vec3(l / 2, 0.1, -l + l / 4, 0.1)), 5);
-	scn.opt = options();
+	scn.opt.ninv_fog = -2;
 	scn.opt.sky = false;
 	scn.cam.exposure = 1.f;
 	scn.opt.bounces = 10;
@@ -129,69 +128,67 @@ void scn5(scene& scn) {
 	scn.world.en_bvh = 0;
 }
 void scn6(scene& scn) {
-	scn.world.clear();
+	
 
 	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0), vec3(0.5, 0.5, 1), 1, 1.2);
-	albedo bro(vec3(0.4, 0.2, 0.0, 1), vec3(0, 0, 1));
-	albedo red(vec3(0.63, 0.28, 0.25, 1), vec3(0.5, 0, 0.1));
-	scn.world.add_mat(bro, mat_mix);
+	albedo dgre(vec3(0.4, 0.51, 0.0, 1), vec3(0, 0, 1), "snow_normal.png",10);
+	albedo blu(vec3(0.1, 0.28, 0.8, 1), vec3(0.5, 0, 0.1));
+	scn.world.add_mat(dgre, mat_mix);
 	scn.world.add_mat(gre, mat_mix);
-	scn.world.add_mat(red, mat_ggx);
+	scn.world.add_mat(blu, mat_ggx);
 
-	vector<tri> gourd = load_OBJ("gourd.obj", 0, 0.5f);
+	vector<tri> bunny = load_OBJ("bunny.obj", 0, 6.f);
 	vector<tri> teapot = load_OBJ("teapot.obj", 0, 0.25f);
-	//	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0,0.01f);
 	scn.world.add(vec3(0, 1, 0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
-	scn.world.add(vec3(-0.3, 1.79, -1), gourd, 1);
+	scn.world.add(vec3(-0.44, 0.8, -1), bunny, 1);
 	scn.world.add(vec3(0.7, 1, -1), teapot, 2);
-	//scn.world.add(vec3(0, 1.8, -0.5),dragon, 2);
-	scn.opt = options();
+	scn.cam.autofocus = 0;
+	scn.cam.foc_t = 1.556;
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
 	scn.opt.bounces = 10;
+	scn.opt.ninv_fog = -5;
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
-	scn.cam.setup(matrix(vec3(0.2, 1.7, 1), vec3(0, 0, 0)), 70, 64.f);
+	scn.cam.setup(matrix(vec3(0.1, 1.4, 0.8), vec3(0, 0, 0)), 70, 1.f);
 	scn.world.en_bvh = 1;
 }
 void scn7(scene& scn) {
-	scn.world.clear();
+	
 
-	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0), vec3(0.5, 0.5, 1), 1, 1.2);
-	albedo bro(vec3(0.4, 0.2, 0.0, 1), vec3(0, 0, 1));
-	albedo red(vec3(0.63, 0.28, 0, 1), vec3(0.5, 0, 0.1));
-	scn.world.add_mat(red, mat_ggx);
+	albedo red(vec3(0.63, 0.28, 0, 1), vec3(0.5, 20, 0.1));
+	scn.world.add_mat(red, mat_las);
 	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0, 0.01f);
-	scn.world.add(vec3(0, 1.8, -0.5), dragon, 0);
-	scn.opt = options();
+	scn.world.add(matrix(vec3(0, 1.8, -0.5),vec3(0,-0.66,0)), dragon, 0);
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
 	scn.opt.bounces = 10;
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
+	scn.opt.ninv_fog = -0.5;
+	scn.opt.en_fog = true;
 	scn.cam.setup(matrix(vec3(0.2, 1.7, 1), vec3(0, 0, 0)), 70, 64.f);
 	scn.world.en_bvh = 1;
 }
 
 void scn8(scene& scn) {
-	scn.world.clear();
+	
 
 	albedo r(vec3(0.8, 0.1, 0.1, 1), vec3(0, 1000, 0));
 	albedo g(vec3(0.1, 0.8, 0.1, 1), vec3(0, 1000, 0));
 	albedo b(vec3(0.1, 0.1, 0.8, 1), vec3(0, 1000, 0));
 	albedo a(vec3(0.95, 0.95, 0.95, 0), vec3(0, 0, 0),vec3(0.5,0.5,1),1,1.5);
+
 	scn.world.add_mat(a, mat_mix);
 	scn.world.add_mat(r, mat_las);
 	scn.world.add_mat(g, mat_las);
 	scn.world.add_mat(b, mat_las);
-	
-	
-	scn.world.add(vec3(0, 0, -0.1), sphere(vec3(0,0,0,0.02)), 0, 1,1);
+
+	scn.world.add(vec3(0, 0, -0.1), sphere(vec3(0,0,0,0.03)), 0, 1,1);
 	scn.world.add(vec3(-0.05, 0.09, -0.1), sphere(vec3(0,0,0,0.01)), 1, 1,1);
 	scn.world.add(vec3(0, 0.1, -0.1), sphere(vec3(0,0,0,0.01)), 2, 1,1);
 	scn.world.add(vec3(0.05, 0.09, -0.1), sphere(vec3(0,0,0,0.01)), 3, 1,1);
 	
-	scn.opt = options();
 	scn.cam.exposure = 1.f;
 	scn.opt.bounces = 20;
 	scn.opt.samples = 2;

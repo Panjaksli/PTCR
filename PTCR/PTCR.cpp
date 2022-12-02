@@ -107,7 +107,7 @@ int main()
 			ImGui::Begin("Camera settings");
 			ImGui::SameLine();
 			if (ImGui::Button("Screenshot")) {
-				save_hdr(Scene.cam.CCD.data, Scene.cam.w, Scene.cam.h,Scene.cam.CCD.spp);
+				save_hdr(Scene);
 			}
 			if (ImGui::SliderInt("Scene", &scn_n, 1, no_scn)) {
 				id = obj_id();
@@ -141,7 +141,7 @@ int main()
 			}
 			moving |= ImGui::DragFloat("Exposure", &Scene.cam.exposure, 0.1, 0.01, 100.f, "% .2f");
 			moving |= ImGui::DragFloat("F-stop", &Scene.cam.fstop, 0.1, 0.1f, 64.f, "% .2f");
-			ImGui::Checkbox("Perf mode", &Scene.opt.p_mode);
+			//ImGui::Checkbox("Perf mode", &Scene.opt.p_mode);
 			if (ImGui::DragFloat("Res scale", &scale, 0.01, 0.1, 4, " % .2f", CLAMP))
 			{
 				Scene.cam.resize(width, height, scale);
