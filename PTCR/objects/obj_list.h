@@ -6,21 +6,31 @@ class obj_list {
 public:
 	obj_list() {}
 	~obj_list() { clear(); }
-	//Definitions
+	aabb bbox;
+	vector<uint> lights;
+	vector<mesh_var> skp_bvh;
+	vector<mesh_var> objects;
+	vector<mesh_raw> obj_bvh;
+	vector<bvh_node> bvh;
+	vector<mat_var> materials;
+	float lw;
+	bool en_bvh = 1;
 
 	__forceinline bool hit(const ray& r, hitrec& rec) const {
 		if (!bbox.hit(r)) return false;
-		bool hit = false;
-		for (auto& obj : skp_bvh)hit |= obj.hit(r, rec);
+		uchar any_hit = false;
+		for (auto& obj : skp_bvh)
+			any_hit |= obj.hit(r, rec);
 		if (en_bvh) {
-			if (!bvh[0].bbox.hit(r))return hit;
-			return hit + traverse_bvh(r, rec, 0);
+			if (!bvh[0].bbox.hit(r))return any_hit;
+			return any_hit | traverse_bvh(r, rec, 0);
 		}
 		else
 		{
-			for (auto& obj : objects)hit |= obj.hit(r, rec);
+			for (auto& obj : objects)
+				any_hit |= obj.hit(r, rec);
 		}
-		return hit;
+		return any_hit;
 	}
 	__forceinline float pdf(const ray& r)const {
 		float y = 0.f;
@@ -39,7 +49,7 @@ public:
 		return skp_bvh[light].rand_from();
 	}
 	// 0th and last + 1 element
-	__forceinline bool traverse_bvh(const ray& r, hitrec& rec, uint id = 0) const {
+	__forceinline uchar traverse_bvh(const ray& r, hitrec& rec, uint id = 0) const {
 		const bvh_node& node = bvh[id];
 		if (node.flag)
 		{
@@ -56,8 +66,8 @@ public:
 			float t1 = bvh[node.n1].bbox.hit(r, rec.t);
 			float t2 = bvh[node.n2].bbox.hit(r, rec.t);
 			if (t1 < infp && t2 < infp) {
-				if (t1 <= t2) return traverse_bvh(r, rec, node.n1) + traverse_bvh(r, rec, node.n2);
-				else return traverse_bvh(r, rec, node.n2) + traverse_bvh(r, rec, node.n1);
+				if (t1 <= t2) return traverse_bvh(r, rec, node.n1) | traverse_bvh(r, rec, node.n2);
+				else return traverse_bvh(r, rec, node.n2) | traverse_bvh(r, rec, node.n1);
 			}
 			else if (t1 < infp)return traverse_bvh(r, rec, node.n1);
 			else if (t2 < infp)return traverse_bvh(r, rec, node.n2);
@@ -65,10 +75,10 @@ public:
 #endif
 		}
 		else {
-			bool hit = 0;
+			uchar any_hit = 0;
 			for (uint i = node.n1; i < node.n2; i++)
-				hit |= obj_bvh[i].hit(r, rec);
-			return hit;
+				any_hit |= obj_bvh[i].hit(r, rec);
+			return any_hit;
 		}
 	}
 	void add_mat(const albedo& tex, const mat_enum type) {
@@ -96,8 +106,6 @@ public:
 	void build_bvh(bool print = 1, uint node_size = 8);
 	void split_bvh(uint be, uint en, uint node_size);
 	aabb box_from(uint begin, uint end);
-
-
 
 private:
 
@@ -129,16 +137,7 @@ private:
 	static bool cmp_axis_z(const mesh_raw& a, const mesh_raw& b) {
 		return a.get_box().pmid().z() < b.get_box().pmid().z();
 	};
-public:
-	aabb bbox;
-	vector<uint> lights;
-	vector<mesh_var> skp_bvh;
-	vector<mesh_var> objects;
-	vector<mesh_raw> obj_bvh;
-	vector<bvh_node> bvh;
-	vector<mat_var> materials;
-	float lw;
-	bool en_bvh = 1;
+
 };
 template <typename T>
 void obj_list::add(const T& object, uint mat, bool skip_bvh, bool is_light)

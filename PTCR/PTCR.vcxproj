@@ -204,6 +204,7 @@
     <ClInclude Include="math\vec3_SSE.h" />
     <ClInclude Include="misc\defines.h" />
     <ClInclude Include="misc\event_handler.h" />
+    <ClInclude Include="misc\unused_drafts.h" />
     <ClInclude Include="scene\scenes.h" />
     <ClInclude Include="shaders\albedo.h" />
     <ClInclude Include="shaders\texture.h" />
@@ -214,7 +215,7 @@
     <ClInclude Include="objects\obj_list.h" />
     <ClInclude Include="objects\quad.h" />
     <ClInclude Include="objects\sphere.h" />
-    <ClInclude Include="objects\tri.h" />
+    <ClInclude Include="objects\poly.h" />
     <ClInclude Include="objects\voxel.h" />
     <ClInclude Include="scene\camera.h" />
     <ClInclude Include="scene\scene.h" />

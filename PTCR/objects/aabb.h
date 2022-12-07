@@ -2,10 +2,8 @@
 #include "vec3.h"
 #include "ray.h"
 
-class aabb {
-public:
+struct aabb {
 	aabb() {}
-
 	aabb(const vec3 p1, const vec3 p2) :pmin(min(p1, p2)), pmax(max(p1, p2)) {}
 	aabb(const vec3 p1, const vec3 p2, const vec3 p3) :pmin(min(p1, p2, p3)), pmax(max(p1, p2, p3)) {}
 	aabb(const vec3 p1, const vec3 p2, const vec3 p3, const vec3 p4) :pmin(min(p1, p2, min(p3, p4))), pmax(max(p1, p2, max(p3, p4))) {}
@@ -14,6 +12,9 @@ public:
 		aabb box1 = *this;
 		box1.join(box);
 		return box1;
+	}
+	inline aabb trans(vec3 P) const {
+		return { pmin + P, pmax + P };
 	}
 	inline void join(const aabb& box) {
 		if (neq0(pmin) || neq0(pmax))
@@ -50,8 +51,8 @@ public:
 		pmin.print();
 		pmax.print();
 	}
-	/*: Alexander Majercik, Cyril Crassin, Peter Shirley, and Morgan McGuire, A Ray-Box Intersection Algorithm and Efficient Dynamic Voxel Rendering, Journal of Computer Graphics Techniques (JCGT), vol. 7, no. 3, 66-81, 2018
-	Available online http://jcgt.org/published/0007/03/04/7
+	/*: 
+	Edited from: https://tavianator.com/2011/ray_box.html
 	*/
 	__forceinline bool hit(const ray& r) const {
 		vec3 t1 = (pmin - r.O) * r.iD;

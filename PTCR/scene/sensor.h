@@ -8,18 +8,17 @@ public:
 	sensor(uint _w, uint _h) : data(_w* _h),w(_w), h(_h), n(_w* _h) {}
 	vector<vec3> data;
 	uint* disp = nullptr;
-	uint w = 0, h = 0, n = 0;
-	uint pitch = 0;
+	uint w = 0, h = 0, n = 0, pitch = 0;
 	float spp = 0.f;
 
 
-	__forceinline void add(uint i, uint j, const vec3& col) {
+	__forceinline void add(uint i, uint j, const vec3& rgb) {
 		uint off = i * w + j;
-		data[off] += fixnan(col);
+		data[off] += fixnan(rgb);
 	}
-	inline void set(uint i, uint j, const vec3& col) {
+	inline void set(uint i, uint j, const vec3& rgb) {
 		uint off = i * w + j;
-		data[off] = fixnan(col);
+		data[off] = fixnan(rgb);
 	}
 	inline void clear(uint i) {
 		data[i] = vec3();

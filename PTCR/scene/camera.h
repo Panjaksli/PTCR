@@ -23,37 +23,47 @@ public:
 	bool autofocus = 1;
 	bool moving = 1;
 
-
-	__forceinline ray raycast(float py, float px) const
+	__forceinline ray optical_ray(float py, float px) const
 	{
-		float SSX = 2.f * (px + 0.5f) * iw - 1.f;
-		float SSY = 1.f - 2.f * (py + 0.5f) * ih;
-		px = SSX * tfov * asp;
-		py = SSY * tfov;
+		SS(py, px);
 		vec3 D(px, py, -1);
-		D = foc_t * (T * D);
+		D = foc_t * D;
+		vec3 O(T.P());
+		//Defocus blur
 		vec3 r = foc_l * sa_disk() / fstop;
 		r = T * r;
-		vec3 O(T.P());
-		//offset the ray by focal lenght divided by shutter size
-		return ray(O - r, D + r, true);
-	}
-	__forceinline void pixel(uint y, uint x, vec3 col)
-	{
-		CCD.add(y, x, vec3(col, 1.f / exposure));
-		CCD.outpix(y, x);
+		return ray(O - r, T * D + r, true);
 	}
 
+	__forceinline ray pinhole_ray(float py, float px) const
+	{
+		SS(py, px);
+		return ray(T.P(), T * vec3(px, py, -1), true);
+	}
+
+	__forceinline void pixel(uint y, uint x, vec3 rgb)
+	{
+		CCD.add(y, x, vec3(rgb, 1.f / exposure));
+		CCD.outpix(y, x);
+	}
+	
 	void update();
 	void set_P(vec3 P);
 	void move_free(float frw, float up, float sid);
 	void move_fps(float frw, float up, float sid);
 	void rotate(float alfa, float beta, float gamma);
 	void resize(uint _w, uint _h, float scale);
+	void reset_opt();
 	void setup(matrix _T, float _fov, float _fstop = 16);
 	void set_fov(float _fov);
 	ray focus_ray(float py = 0.5f, float px = 0.5f) const;
-
+private:
+	inline void SS(float& py, float& px) const {
+		float SSX = 2.f * (px + 0.5f) * iw - 1.f;
+		float SSY = 1.f - 2.f * (py + 0.5f) * ih;
+		px = SSX * tfov * asp;
+		py = SSY * tfov;
+	}
 	inline float m_to_fov(float m) {
 		return 2.f * atanf(diagonal / (2.f * m));
 	}

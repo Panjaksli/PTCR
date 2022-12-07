@@ -1,8 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
-
+#include <stb/stb_image.h>
 #include "texture.h"
-#include "stb/stb_image.h"
-#include <string>
+
 bool texture::load(const std::string filename) {
 	int n = 4;
 	int width, height;

@@ -5,7 +5,7 @@
 #include "onb.h"
 extern bool en_bvh;
 enum obj_enum {
-	o_bla, o_sph, o_qua, o_tri, o_vox
+  o_pol, o_qua, o_sph, o_vox, o_bla
 };
 struct obj_id {
 	obj_id(obj_enum type = o_bla, uint id = 0, bool bvh = 1) :type(type), id(id), bvh(bvh) {}
@@ -24,17 +24,14 @@ struct bvh_node {
 	aabb bbox;
 	uint n1, n2;
 	bool flag;
-	//bool flag;
-	/*bvh_node(aabb bbox, uint n1, uint n2, bool flag = 0) :p1(bbox.pmin), n1(n1), p2(bbox.pmax), n2(n2), flag(flag) {}
-	union { aabb bbox; struct { vec3f p1; uint n1; vec3f p2; uint n2; }; };*/
 };
 
 struct hitrec
 {
 	vec3 N, P;
-	uint mat;
 	float t = infp;
 	float u, v;
+	uint mat;
 	bool face;
 };
 

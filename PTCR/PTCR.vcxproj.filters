@@ -104,7 +104,7 @@
     <ClInclude Include="objects\sphere.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="objects\tri.h">
+    <ClInclude Include="objects\poly.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="objects\voxel.h">
@@ -171,6 +171,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scene\scenes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\unused_drafts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

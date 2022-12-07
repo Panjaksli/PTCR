@@ -35,8 +35,6 @@ void obj_list::set_trans(obj_id id, const matrix& T, uint node_size) {
 	}
 	fit();
 }
-
-
 void obj_list::fit() {
 	bbox = aabb();
 	for (const auto& obj : objects)
@@ -54,17 +52,13 @@ void obj_list::obj_unroll() {
 		uint mat = obj.get_mat();
 		for (uint j = 0; j < obj.get_size(); j++)
 		{
-#if BVHSMALL
-			obj_bvh.emplace_back(mesh_raw(&obj, j));
-#else
 			switch (obj.id) {
-			case o_tri: obj_bvh.emplace_back(mesh_raw(obj.t.get_data(j), mat)); break;
+			case o_pol: obj_bvh.emplace_back(mesh_raw(obj.p.get_data(j), mat)); break;
 			case o_qua: obj_bvh.emplace_back(mesh_raw(obj.q.get_data(j), mat)); break;
 			case o_sph: obj_bvh.emplace_back(mesh_raw(obj.s.get_data(j), mat)); break;
 			case o_vox: obj_bvh.emplace_back(mesh_raw(obj.v.get_data(j), mat)); break;
 			default:break;
 			}
-#endif
 		}
 	}
 }
@@ -77,7 +71,7 @@ void obj_list::rebuild_bvh(bool print, uint node_size) {
 	split_bvh(0, obj_bvh.size(), node_size);
 	float t2 = clock() - t1;
 	if (print)
-		printf("\n%d %f\n", (int)bvh.size(), t2 / CLOCKS_PER_SEC);
+		printf("%d %f\n", (int)bvh.size(), t2 / CLOCKS_PER_SEC);
 }
 
 void obj_list::build_bvh(bool print, uint node_size) {
@@ -88,7 +82,7 @@ void obj_list::build_bvh(bool print, uint node_size) {
 	bvh.shrink_to_fit();
 	float t2 = clock() - t1;
 	if (print)
-		printf("\n%d %f\n", (int)bvh.size(), t2 / CLOCKS_PER_SEC);
+		printf("%d %f\n", (int)bvh.size(), t2 / CLOCKS_PER_SEC);
 }
 //hard to believe but this creates the best memory layout (left node is next to current, right node has large offset)
 void obj_list::split_bvh(uint be, uint en, uint node_size) {

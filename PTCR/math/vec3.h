@@ -5,12 +5,7 @@
 #else 
 #include "vec3_scalar.h"
 #endif
-struct vec3f {
-	vec3f(float t) :x(t), y(t), z(t) {}
-	vec3f(vec3 t) :x(t.x()), y(t.y()), z(t.z()) {}
-	vec3f(float x, float y, float z = 0) :x(x), y(y), z() {}
-	float x, y, z;
-};
+
 //common functions
 inline vec3 fma(vec3 a, vec3 b, vec3 c) {
 	return a * b + c;
@@ -50,7 +45,7 @@ inline vec3 clamp(vec3 u, vec3 lo, vec3 hi)
 }
 inline vec3 fixnan(vec3 u)
 {
-	return max(0.f, u);
+	return max(u,0.0f);
 }
 inline vec3 saturate(vec3 u)
 {
@@ -66,13 +61,18 @@ inline vec3 refract(vec3 v, vec3 n, float eta) {
 	float k = 1.f - eta * eta * (1.f - NoV * NoV);
 	return eta * v - (eta * NoV + sqrtf(fabsf(k))) * n;
 }
-inline vec3 normal(vec3 u, vec3 v) {
+inline vec3 poly_nis(vec3 u, vec3 v) {
 	vec3 uv = cross(u, v);
 	vec3 N = norm(uv);
-	N.xyz[3] = uv.len();
+	N.xyz[3] = 2.f/uv.len();
 	return N;
 }
-
+inline vec3 qua_nis(vec3 u, vec3 v) {
+	vec3 uv = cross(u, v);
+	vec3 N = norm(uv);
+	N.xyz[3] = 1.f / uv.len();
+	return N;
+}
 inline vec3 fast_sin(vec3 x)
 {
 	vec3 x2 = x * x;
@@ -108,6 +108,17 @@ inline float luminance(vec3 rgb)
 	return dot(vec3(0.2126f, 0.7152f, 0.0722f), rgb);
 }
 
+inline void bgr(vec3 col, uint& bgr)
+{
+	col /= col.w(); //divide by sample count
+#if GAMMA2
+	col = sqrt(col); //gamma correction to sRGB
+#endif
+	col = saturate(col);//clamp 0 - 1
+	col *= 255.f; //multiply by 8bit max value
+	col += 0.5f * ravec();//dithering using noise
+	bgr = pack_bgr(col.x(), col.y(), col.z()); //store to bgr pixel
+}
 inline void rgb(vec3 col, uint& rgb)
 {
 	col /= col.w();
@@ -119,24 +130,6 @@ inline void rgb(vec3 col, uint& rgb)
 	col += 0.5f * ravec();
 	rgb = pack_rgb(col.x(), col.y(), col.z());
 }
-inline void bgr(vec3 col, uint& bgr)
-{
-	//divide by pixels sample count
-	col /= col.w();
-#if GAMMA2
-	//gamma correction to srgb
-	col = sqrt(col);
-#endif
-	//clamp 0 - 1
-	col = saturate(col);
-	//multiply by 8bit max value
-	col *= 255.f;
-	//deband
-	col += 0.5f * ravec();
-	//store to bgr
-	bgr = pack_bgr(col.x(), col.y(), col.z());
-}
-
 inline vec3 unrgb(const uint& rgb) {
 	vec3 v;
 	v.xyz[0] = rgb & 0x000000ff;

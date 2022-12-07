@@ -10,11 +10,12 @@ void scn5(scene& scn);
 void scn6(scene& scn);
 void scn7(scene& scn);
 void scn8(scene& scn);
-std::vector<tri> load_OBJ(const char* name, vec3 off = 0, float scale = 1.f, bool flip_face = 0);
+std::vector<poly> load_OBJ(const char* name, vec3 off = 0, float scale = 1.f, bool flip_face = 0);
 
 inline void scn_load(scene& scn, int n, uint node_size = 8) {
 	scn.world.clear();
-	scn.opt = options();
+	scn.opt = scene_opt();
+	scn.cam.reset_opt();
 	switch (n) {
 	case 1: scn1(scn); break;
 	case 2: scn2(scn); break;

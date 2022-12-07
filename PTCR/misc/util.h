@@ -13,6 +13,12 @@ inline float fsqrt(float x)
 	i = 0x1fbd5f5f + (i >> 1); //532316802 //0x1fbd5f5f
 	return *(float*)&i;
 }
+
+inline float flogf(float x)
+{
+	return  *(uint*)&x * 8.2546954e-8f - 87.94167f;
+}
+
 inline constexpr int copysigni(int a, int b) {
 	return b > 0 ? a : -a;
 }
@@ -170,7 +176,7 @@ inline uint fastrand() {
 }
 inline float rafl()
 {
-	uint x = 0x3f800000 | (fastrand() & 0x007FFFFF);
+	uint x = 0x3f800000 | (xorshift32() & 0x007FFFFF);
 	return *(float*)&x - 1.f;
 }
 

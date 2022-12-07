@@ -7,11 +7,10 @@
 #include "shading.h"
 
 struct matrec {
-public:
 	vec3 N;	//Normal from normal map
 	vec3 P; //Adjusted hitpoint
 	vec3 L; //Ray dir: diffuse, specular
-	vec3 scat, emis; //Color
+	vec3 aten, emis; //Color
 	uchar sd = 0; // specular / diff
 };
 
@@ -40,9 +39,9 @@ namespace material {
 			mat.P = rec.P + rec.N * eps;
 			mat.sd = 2;
 			mat.N = N;
-			mat.scat = rgb;
+			mat.aten = rgb;
 			mat.emis = em * rgb;
-			mat.sd *= not0(mat.scat);
+			mat.sd *= not0(mat.aten);
 			return;
 		}
 		vec3 H = n.world(sa_ggx(a));
@@ -68,9 +67,9 @@ namespace material {
 			mat.sd = 2;
 		}
 		mat.N = N;
-		mat.scat = rgb;
+		mat.aten = rgb;
 		mat.emis = em * rgb;
-		mat.sd *= not0(mat.scat);
+		mat.sd *= not0(mat.aten);
 	}
 	__forceinline void ggx(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
@@ -97,19 +96,19 @@ namespace material {
 			if (NoV <= 0 || NoL <= 0 || NoH <= 0) return;
 			float G = GGX(NoL, NoV, a);
 			float W = HoV / (NoV * NoH);
-			mat.scat = F * G * W / f;
+			mat.aten = F * G * W / f;
 			mat.L = n.world(L);
 			mat.sd = 1;
 		}
 		else {
-			mat.scat = (1.f - mu) * (1.f - F) * rgb / (1.f - f);
+			mat.aten = (1.f - mu) * (1.f - F) * rgb / (1.f - f);
 			mat.L = n.world(sa_cos());
 			mat.sd = 2;
 		}
 		mat.N = N;
 		mat.P = rec.P + rec.N * eps;
 		mat.emis = rgb * em;
-		mat.sd *= not0(mat.scat);
+		mat.sd *= not0(mat.aten);
 	}
 	__forceinline void vndf(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
 		vec3 rgb = tex.rgb(rec.u, rec.v);
@@ -133,19 +132,19 @@ namespace material {
 		bool spec = rafl() < f;
 		if (spec) {
 			if (NoV <= 0 || NoL <= 0) return;
-			mat.scat = F * VNDF_GGX(NoL, NoV, a) / f;
+			mat.aten = F * VNDF_GGX(NoL, NoV, a) / f;
 			mat.L = n.world(L);
 			mat.sd = 1;
 		}
 		else {
-			mat.scat = (1.f - F) * (1.f - mu) * rgb / (1.f - f);
+			mat.aten = (1.f - F) * (1.f - mu) * rgb / (1.f - f);
 			mat.L = n.world(sa_cos());
 			mat.sd = 2;
 		}
 		mat.N = N;
 		mat.P = rec.P + rec.N * eps;
 		mat.emis = rgb * em;
-		mat.sd *= not0(mat.scat);
+		mat.sd *= not0(mat.aten);
 	}
 
 	__forceinline void light(const ray& r, const hitrec& rec, const albedo& tex, matrec& mat) {
@@ -163,8 +162,7 @@ namespace material {
 		mat.emis = absdot(rec.N, r.D) * em * rgb;
 	}
 }
-class mat_var {
-public:
+struct mat_var {
 	mat_var(const albedo& tex, mat_enum type) :tex(tex), type(type) {}
 
 	__forceinline void sample(const ray& r, const hitrec& rec, matrec& mat)const {

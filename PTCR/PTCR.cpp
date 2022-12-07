@@ -1,15 +1,11 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <imgui.h>
-#include <time.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_sdlrenderer.h>
 #include "scenes.h"
 #include "event_handler.h"
-#define WIDTH 960
-#define HEIGHT 720
-#define SCALE 1.f //0.
-#define CLAMP ImGuiSliderFlags_AlwaysClamp
+#include "defines.h"
 #if DEBUG
 bool use_normal_maps = 1;
 #endif
@@ -18,9 +14,7 @@ int main()
 {
 	uint width = WIDTH, height = HEIGHT;
 	SDL_Init(SDL_INIT_EVERYTHING);
-#if defined(_WIN32) || defined(WIN32)
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
-#endif
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 	SDL_Window* window = SDL_CreateWindow("PTCR", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * 4 / 3, height, SDL_WINDOW_SHOWN);
 	SDL_SetWindowMinimumSize(window, 200, 200);
@@ -95,7 +89,7 @@ int main()
 		if (handle[SDL_SCANCODE_D])Scene.cam.move_fps(0, 0, mul * mov);
 		if (handle[SDL_SCANCODE_SPACE])Scene.cam.move_fps(0, mul * mov, 0);
 		if (handle[SDL_SCANCODE_LCTRL])Scene.cam.move_fps(0, -mul * mov, 0);
-		if (handle[SDL_SCANCODE_F1])overlay = !overlay, handle[SDL_SCANCODE_F1] = 0;
+		//if (handle[SDL_SCANCODE_F1])overlay = !overlay, handle[SDL_SCANCODE_F1] = 0;
 		
 		if (overlay)
 		{
@@ -107,7 +101,7 @@ int main()
 			ImGui::Begin("Camera settings");
 			ImGui::SameLine();
 			if (ImGui::Button("Screenshot")) {
-				save_hdr(Scene);
+				Scene.Screenshot();
 			}
 			if (ImGui::SliderInt("Scene", &scn_n, 1, no_scn)) {
 				id = obj_id();
@@ -152,24 +146,17 @@ int main()
 			ImGui::DragFloat("Render Rate", &Scene.opt.res_rate, 0.01, 0.01, 1, "%.2f", CLAMP);
 			if (ImGui::DragFloat("Ray lifetime", &Scene.opt.p_life, 0.01, 0.01, 1.f, "%.2f", CLAMP))
 				Scene.opt.i_life = 1.f / Scene.opt.p_life, moving = 1;
-			ImGui::InputInt("Samples", &Scene.opt.samples, 1, 1);
-			if (ImGui::DragFloat("Fog density", &fogdens, -0.01, -1, 12, "1e-%.2f", CLAMP)) {
-				Scene.opt.ninv_fog = -1.f * pow(10,fogdens); moving = 1;
-			}
-			moving |= ImGui::InputInt("Bounces", &Scene.opt.bounces, 1, 1);
+			ImGui::DragInt("Samples", &Scene.opt.samples,0.1, 0, 100,0,CLAMP);
+			moving |= ImGui::DragInt("Bounces", &Scene.opt.bounces,0.1, 0, 1000,0,CLAMP);
 			moving |= ImGui::Checkbox("Light sampling", &Scene.opt.li_sa); ImGui::SameLine();
 			moving |= ImGui::Checkbox("Sun sampling", &Scene.opt.sun_sa);
-			moving |= ImGui::Checkbox("Sky", &Scene.opt.sky);
 
 #if DEBUG
-
 			moving |= ImGui::Checkbox("Debug Aten", &Scene.opt.dbg_at); ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug N", &Scene.opt.dbg_n);
 			moving |= ImGui::Checkbox("Debug UV", &Scene.opt.dbg_uv);	ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug t", &Scene.opt.dbg_t);
 			moving |= ImGui::Checkbox("Normal maps", &use_normal_maps); ImGui::SameLine();
-			moving |= ImGui::Checkbox("Fog", &Scene.opt.en_fog);
-			moving |= ImGui::Checkbox("BVH", &Scene.world.en_bvh); ImGui::SameLine();
 			static bool denoise = 1;
 			ImGui::Checkbox("Denoise", &denoise);// ImGui::SameLine();
 			moving |= !denoise;
@@ -180,11 +167,17 @@ int main()
 			ImGui::SetNextWindowPos(ImVec2(WIDTH, HEIGHT / 2));
 			ImGui::SetNextWindowSize(ImVec2(WIDTH * 16 / 12 - WIDTH, HEIGHT / 2));
 
-			ImGui::Begin("Object properties");
-			
-			if (ImGui::InputInt("BVH Nodes", &node_size, 1, 1)) {
-				node_size = node_size <= 2 ? 2 : node_size;
-				node_size = node_size >= 64 ? 64 : node_size;
+			ImGui::Begin("World properties");
+			moving |= ImGui::Checkbox("Sky", &Scene.opt.sky); ImGui::SameLine();
+			moving |= ImGui::Checkbox("Fog", &Scene.opt.en_fog);
+			if(Scene.opt.en_fog){
+			if (ImGui::DragFloat("Fog density", &fogdens, -0.01, -1, 12, "1e-%.2f", CLAMP)) {
+				Scene.opt.ninv_fog = -1.f * pow(10, fogdens); moving = 1;
+			}
+			moving |= ImGui::ColorEdit3("Fog color", Scene.opt.fog_col._xyz, ImGuiColorEditFlags_Float);
+			}
+			moving |= ImGui::Checkbox("BVH", &Scene.world.en_bvh);
+			if (ImGui::DragInt("Leaf nodes", &node_size,1, 1, 32,0,CLAMP)) {
 				Scene.world.rebuild_bvh(1, node_size);
 			}
 			ImGui::Text("ID: %d, Type: %d", id.id, id.type);

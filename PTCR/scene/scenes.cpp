@@ -6,35 +6,31 @@
 #include<algorithm>
 #include "scenes.h"
 
-
 void scn1(scene& scn) {
-	
-	albedo gnd(vec3(0.8, 0.4, 0.3, 1), vec3(0, 0, 0));
-	albedo trans(vec3(0.7, 0.7, 0.99, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
-	albedo trans2(vec3(0.99, 0.7, 0.7, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
-	albedo red(vec3(0.8, 0.1, 0.1, 1), vec3(1, 0, 0.1));
-	albedo blue(vec3(0.1, 0.1, 0.8, 1), vec3(1, 0, 0.1));
-	scn.world.add_mat(gnd, mat_ggx);
-	scn.world.add_mat(trans, mat_mix);
-	scn.world.add_mat(red, mat_ggx);
-	scn.world.add_mat(trans2, mat_mix);
-	scn.world.add_mat(blue, mat_ggx);
-	scn.world.add(quad(vec3(-100, 0, -100), vec3(100, 0, -100), vec3(-100, 0, 100)), 0, 1);
-	scn.world.add(sphere(vec3(0, 3.001, -3, 1)), 1);
-	scn.world.add(voxel(vec3(0, 3.001, -3, 0.576)), 2);
-	scn.world.add(voxel(vec3(0, 1.001, -3, 1)), 3);
-	scn.world.add(sphere(vec3(0, 1.001, -3, 0.999f)), 4);
-	scn.opt.ninv_fog = -100;
+	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0), vec3(0.5, 0.5, 1), 1, 1.2);
+	albedo dgre(vec3(0.4, 0.51, 0.0, 1), vec3(0, 0, 1), "snow_normal.png", 10);
+	albedo blu(vec3(0.1, 0.28, 0.8, 1), vec3(0.5, 0, 0.1));
+	scn.world.add_mat(dgre, mat_mix);
+	scn.world.add_mat(gre, mat_mix);
+	scn.world.add_mat(blu, mat_ggx);
+	vector<poly> bunny = load_OBJ("bunny.obj", 0, 6.f);
+	vector<poly> teapot = load_OBJ("teapot.obj", 0, 0.25f);
+	scn.world.add(vec3(0, 1, 0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
+	scn.world.add(vec3(-0.44, 0.8, -1), bunny, 1);
+	scn.world.add(vec3(0.7, 1, -1), teapot, 2);
+	scn.cam.autofocus = 0;
+	scn.cam.foc_t = 1.556;
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
 	scn.opt.bounces = 10;
+	scn.opt.ninv_fog = -5;
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
-	scn.cam.setup(matrix(vec3(0, 1.7, 1), vec3(0, 0, 0)), 70, 1.f);
-	scn.world.en_bvh = 0;
+	scn.cam.setup(matrix(vec3(0.1, 1.4, 0.8), vec3(0, 0, 0)), 70, 1.f);
+	scn.world.en_bvh = 1;
 }
+
 void scn2(scene& scn) {
-	
 	scn.opt.li_sa = 1;
 	albedo iron(vec3(0.7, 0.7, 0.9), vec3(1, 0, 0));
 	albedo white(vec3(0.8, 0.8, 0.8), vec3(0, 5, 0));
@@ -48,7 +44,7 @@ void scn2(scene& scn) {
 	room.emplace_back(quad(vec3(-1, 2, -1), vec3(3, 2, -1), vec3(-1, 2, 1)));
 	room.emplace_back(quad(vec3(-1, 0, -1), vec3(3, 0, -1), vec3(-1, 2, -1)));
 	room.emplace_back(quad(vec3(-1, 0, 1), vec3(3, 0, 1), vec3(-1, 2, 1)));
-	scn.opt.ninv_fog = -10000;
+	scn.opt.ninv_fog = -100;
 	scn.world.add(room, 0);
 	scn.world.add(quad(vec3(0, 0, 0), vec3(1, 0, 0), vec3(0, 1, 0.999)), 1); //0.24 0 0.67
 	scn.world.add(voxel(vec3(0, 1.9, 0, 0.1)), 2, 1, 1);
@@ -57,23 +53,19 @@ void scn2(scene& scn) {
 	scn.world.en_bvh = 0;
 }
 void scn3(scene& scn) {
-	
-
 	for (int i = 0; i <= 10; i++) {
 		for (int j = 0; j <= 10; j++) {
-			albedo pbrcol(vec3(0.9f, 0.6f, 0.), vec3(0.1 * i, 0, 0.1 * j), vec3(0.5, 0.5, 1), 10);
+			albedo pbrcol(vec3(0.8f, 0.1f, 0.1f), vec3(0.1 * i, 0, 0.1 * j), vec3(0.5, 0.5, 1), 10);
 			scn.world.add_mat(pbrcol, mat_ggx);
-			for (int k = 0; k <= 10; k++)
-				scn.world.add(sphere(vec3(6 - j, 6 - i, -3 - k, 0.5)), i * 11 + j);
+			scn.world.add(vec3(6 - i, 6 - j, -3), sphere(vec3(0, 0, 0, 0.5)), i * 11 + j);
 		}
 	}
-	scn.opt.ninv_fog = -100;
+	scn.opt.en_fog = 0;
 	scn.sun_pos.set_A(vec3(1, 0, 1));
 	scn.cam.setup(matrix(vec3(1, 1, 10), vec3(0, 0, 0)), 47, 10);
 	scn.world.en_bvh = 1;
 }
 void scn4(scene& scn) {
-	
 	albedo white(vec3(0.9, 0.9, 0.9, 1), vec3(0, 0, 1));
 	albedo light(vec3(0.4, 0.0, 0.7, 1), vec3(0, 100, 0));
 	albedo clear(vec3(1.f, 1.f, 1.f, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.5);
@@ -83,7 +75,6 @@ void scn4(scene& scn) {
 	scn.world.add(quad(vec3(-10, eps, -10), vec3(10, eps, -10), vec3(-10, eps, 10)), 0, 1);
 	scn.world.add(voxel(vec3(0, 1 + 10 * eps, 0, 1)), 1, 1, 1);
 	scn.world.add(sphere(vec3(3, 3, 3, 0.5)), 2, 1, 1);
-	
 	scn.opt.sky = false;
 	scn.cam.exposure = 1.f;
 	scn.opt.bounces = 10;
@@ -93,7 +84,7 @@ void scn4(scene& scn) {
 	scn.world.en_bvh = 0;
 }
 void scn5(scene& scn) {
-	
+
 	albedo white(vec3(0.73, 0.73, 0.73, 1), vec3(0, 0, 1));
 	albedo green(vec3(0.12, 0.45, 0.12, 1), vec3(0, 0, 1));
 	albedo red(vec3(0.45, 0.12, 0.12, 1), vec3(0, 0, 1));
@@ -127,39 +118,38 @@ void scn5(scene& scn) {
 	scn.cam.setup(matrix(vec3(l / 2, 0.2f, l), vec3(0)), 40, 16.f);
 	scn.world.en_bvh = 0;
 }
+
 void scn6(scene& scn) {
-	
-
-	albedo gre(vec3(0.7, 0.9, 0.7, 0), vec3(0, 0, 0), vec3(0.5, 0.5, 1), 1, 1.2);
-	albedo dgre(vec3(0.4, 0.51, 0.0, 1), vec3(0, 0, 1), "snow_normal.png",10);
-	albedo blu(vec3(0.1, 0.28, 0.8, 1), vec3(0.5, 0, 0.1));
-	scn.world.add_mat(dgre, mat_mix);
-	scn.world.add_mat(gre, mat_mix);
-	scn.world.add_mat(blu, mat_ggx);
-
-	vector<tri> bunny = load_OBJ("bunny.obj", 0, 6.f);
-	vector<tri> teapot = load_OBJ("teapot.obj", 0, 0.25f);
-	scn.world.add(vec3(0, 1, 0), quad(vec3(-10, 0, -10), vec3(-10, 0, 10), vec3(10, 0, -10)), 0, 1, 0);
-	scn.world.add(vec3(-0.44, 0.8, -1), bunny, 1);
-	scn.world.add(vec3(0.7, 1, -1), teapot, 2);
-	scn.cam.autofocus = 0;
-	scn.cam.foc_t = 1.556;
+	albedo gnd(vec3(0.8, 0.4, 0.3, 1), vec3(0, 0, 0));
+	albedo trans(vec3(0.7, 0.7, 0.99, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
+	albedo trans2(vec3(0.99, 0.7, 0.7, 0), vec3(1, 0, 0.2), vec3(0.5, 0.5, 1), 1, 1.2);
+	albedo red(vec3(0.8, 0.1, 0.1, 1), vec3(1, 0, 0.1));
+	albedo blue(vec3(0.1, 0.1, 0.8, 1), vec3(1, 0, 0.1));
+	scn.world.add_mat(gnd, mat_ggx);
+	scn.world.add_mat(trans, mat_mix);
+	scn.world.add_mat(red, mat_ggx);
+	scn.world.add_mat(trans2, mat_mix);
+	scn.world.add_mat(blue, mat_ggx);
+	scn.world.add(quad(vec3(-100, 0, -100), vec3(100, 0, -100), vec3(-100, 0, 100)), 0, 1);
+	scn.world.add(sphere(vec3(0, 3.001, -3, 1)), 1);
+	scn.world.add(voxel(vec3(0, 3.001, -3, 0.576)), 2);
+	scn.world.add(voxel(vec3(0, 1.001, -3, 1)), 3);
+	scn.world.add(sphere(vec3(0, 1.001, -3, 0.999f)), 4);
+	scn.opt.ninv_fog = -100;
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
 	scn.opt.bounces = 10;
-	scn.opt.ninv_fog = -5;
 	scn.opt.p_life = 0.9f;
 	scn.opt.i_life = 1.f / 0.9f;
-	scn.cam.setup(matrix(vec3(0.1, 1.4, 0.8), vec3(0, 0, 0)), 70, 1.f);
-	scn.world.en_bvh = 1;
+	scn.cam.setup(matrix(vec3(0, 1.7, 1), vec3(0, 0, 0)), 70, 1.f);
+	scn.world.en_bvh = 0;
 }
-void scn7(scene& scn) {
-	
 
+void scn7(scene& scn) {
 	albedo red(vec3(0.63, 0.28, 0, 1), vec3(0.5, 20, 0.1));
 	scn.world.add_mat(red, mat_las);
-	vector<tri> dragon = load_OBJ("xyzrgb_dragon.obj", 0, 0.01f);
-	scn.world.add(matrix(vec3(0, 1.8, -0.5),vec3(0,-0.66,0)), dragon, 0);
+	vector<poly> dragon = load_OBJ("xyzrgb_dragon.obj", 0, 0.01f);
+	scn.world.add(matrix(vec3(0, 1.8, -0.5), vec3(0, -0.66, 0)), dragon, 0);
 	scn.cam.exposure = 1.f;
 	scn.sun_pos.set_A(vec3(1, 0, 0.32));
 	scn.opt.bounces = 10;
@@ -172,133 +162,97 @@ void scn7(scene& scn) {
 }
 
 void scn8(scene& scn) {
-	
-
 	albedo r(vec3(0.8, 0.1, 0.1, 1), vec3(0, 1000, 0));
 	albedo g(vec3(0.1, 0.8, 0.1, 1), vec3(0, 1000, 0));
 	albedo b(vec3(0.1, 0.1, 0.8, 1), vec3(0, 1000, 0));
-	albedo a(vec3(0.95, 0.95, 0.95, 0), vec3(0, 0, 0),vec3(0.5,0.5,1),1,1.5);
-
+	albedo a(vec3(0.95, 0.95, 0.95, 0), vec3(0, 0, 0), vec3(0.5, 0.5, 1), 1, 1.5);
 	scn.world.add_mat(a, mat_mix);
 	scn.world.add_mat(r, mat_las);
 	scn.world.add_mat(g, mat_las);
 	scn.world.add_mat(b, mat_las);
-
-	scn.world.add(vec3(0, 0, -0.1), sphere(vec3(0,0,0,0.03)), 0, 1,1);
-	scn.world.add(vec3(-0.05, 0.09, -0.1), sphere(vec3(0,0,0,0.01)), 1, 1,1);
-	scn.world.add(vec3(0, 0.1, -0.1), sphere(vec3(0,0,0,0.01)), 2, 1,1);
-	scn.world.add(vec3(0.05, 0.09, -0.1), sphere(vec3(0,0,0,0.01)), 3, 1,1);
-	
+	scn.world.add(vec3(0, 0, -0.1), sphere(vec3(0, 0, 0, 0.03)), 0, 1, 1);
+	scn.world.add(vec3(-0.05, 0.09, -0.1), sphere(vec3(0, 0, 0, 0.01)), 1, 1, 1);
+	scn.world.add(vec3(0, 0.1, -0.1), sphere(vec3(0, 0, 0, 0.01)), 2, 1, 1);
+	scn.world.add(vec3(0.05, 0.09, -0.1), sphere(vec3(0, 0, 0, 0.01)), 3, 1, 1);
 	scn.cam.exposure = 1.f;
 	scn.opt.bounces = 20;
 	scn.opt.samples = 2;
 	scn.opt.p_life = 1.f;
 	scn.opt.i_life = 1.f;
-	scn.opt.ninv_fog=-1;
-	scn.opt.en_fog=true;
+	scn.opt.ninv_fog = -1;
+	scn.opt.en_fog = true;
 	scn.opt.sky = 0;
 	scn.cam.setup(matrix(vec3(0, 0, 0), vec3(0, 0, 0)), 70, 64.f);
 	scn.world.en_bvh = 0;
 }
 
 
-std::vector<tri> load_OBJ(const char* name, vec3 off, float scale, bool flip)
+std::vector<poly> load_OBJ(const char* name, vec3 off, float scale, bool flip)
 {
-	struct xyz {
-		xyz() {}
-		union {
-			uint all[3] = {};
-			struct {
-				uint x, y, z;
-			};
-		};
-
-
+	struct uint3 {
+		uint x, y, z;
 	};
-	//Vertex portions
-	std::vector<vec3> v;
-	std::vector<vec3> vt;
-	std::vector<vec3> vn;
-
-	//Face vectors
-	std::vector<xyz> fv;
-	std::vector<xyz> ft;
-	std::vector<xyz> fn;
-
-	//Vertex array
-	std::vector<tri> tris;
-
-	std::stringstream ss;
 	std::ifstream file(name);
-	std::string line = "";
-	std::string pref = "";
-
 	if (!file.is_open())
 	{
 		file = std::ifstream("objects/" + std::string(name));
 		if (!file.is_open())
 			throw "File not found !";
 	}
-	vector<char> buffer;
-	buffer.resize(1024 * 1024, 0);
-	file.rdbuf()->pubsetbuf(&buffer[0], buffer.size());
-	int size = file.tellg();;
-	v.reserve(size / 2);
-	vt.reserve(size / 2);
-	vn.reserve(size / 2);
-	fv.reserve(size / 2);
-	ft.reserve(size / 2);
-	fn.reserve(size / 2);
-	while (std::getline(file, line))
+	std::stringstream file_buff;
+	file_buff << file.rdbuf();
+	std::vector<vec3> vert; vert.reserve(0xfffff);
+	std::vector<uint3> face; face.reserve(0xfffff);
+	std::vector<poly> tris; tris.reserve(0xfffff);
+	std::string line = "";
+	std::string pref = "";
+	float t1 = clock();
+	while (std::getline(file_buff, line))
 	{
-		ss.clear();
+//C version is 2x faster
+#if 1
+		if (line[0] == 'v'){
+			char b;
+			vec3 tmp;
+			sscanf(line.c_str(), "%c %f %f %f", &b, &tmp._xyz[0], &tmp._xyz[1], &tmp._xyz[2]);
+			vert.emplace_back(tmp);
+		}
+		else if (line[0] == 'f') {
+			char b;
+			uint3 tmp;
+			sscanf(line.c_str(), "%c %u %u %u", &b, &tmp.x, &tmp.y, &tmp.z);
+			tmp.x -= 1; tmp.y -= 1; tmp.z -= 1;
+			face.emplace_back(tmp);
+		}
+#else
+		std::stringstream ss;
 		ss.str(line);
 		ss >> pref;
-		if (pref == "#");
-		else if (pref == "o");
-		else if (pref == "s");
-		else if (pref == "use_mtl");
-		else if (pref == "v")
+		if (pref == "v")
 		{
 			vec3 tmp;
 			ss >> tmp._xyz[0] >> tmp._xyz[1] >> tmp._xyz[2];
-			v.emplace_back(tmp);
-		}
-		else if (pref == "vt")
-		{
-			vec3 tmp;
-			ss >> tmp._xyz[0] >> tmp._xyz[1];
-			vt.emplace_back(tmp);
-		}
-		else if (pref == "vn")
-		{
-			vec3 tmp;
-			ss >> tmp._xyz[0] >> tmp._xyz[1] >> tmp._xyz[2];
-			vn.emplace_back(tmp);
+			vert.emplace_back(tmp);
 		}
 		else if (pref == "f")
 		{
-			xyz buff = {};
-			ss >> buff.x >> buff.y >> buff.z;
-			buff.x -= 1;
-			buff.y -= 1;
-			buff.z -= 1;
-			fv.emplace_back(buff);
+			uint3 tmp = {};
+			ss >> tmp.x >> tmp.y >> tmp.z;
+			tmp.x -= 1; tmp.y -= 1; tmp.z -= 1;
+			face.emplace_back(tmp);
 		}
-		else;
+#endif
 	}
-	tris.resize(fv.size());
-	for (size_t i = 0; i < fv.size(); i++)
+	for (auto& v : vert)
+		v *= scale;
+	for (const auto& f : face)
 	{
-		vec3 a = scale * v[fv[i].all[0]];
-		vec3 b = scale * v[fv[i].all[1]];
-		vec3 c = scale * v[fv[i].all[2]];
-		tris[i] = flip ? tri(a, c, b) : tri(a, b, c);
-		//if (vn.size() > 0) tris[i] = tri(a, b, c, vn[fv[i].x()], vn[fv[i].y()], vn[fv[i].z()]);
+		vec3 a = vert[f.x];
+		vec3 b = vert[f.y];
+		vec3 c = vert[f.z];
+		tris.emplace_back(flip ? poly(a, c, b) : poly(a, b, c));
 	}
-	std::cout << "Succesfully loaded: " << name << "\n";
-	std::cout << "No of tris: " << tris.size() << "\n";
-	//Loaded success
-
+	std::cout << "Loaded: " << name << "\n";
+	std::cout << "No of tris: " << tris.size() << " Took: " << (clock() - t1) / CLOCKS_PER_SEC << "\n";
 	return tris;
 }

@@ -2,8 +2,14 @@
 #include "vec3.h"
 
 struct matrix {
-	matrix(vec3 P = 0, vec3 _A = 0) : A(_A) {
-		rot();
+	matrix(vec3 P = 0){
+		R[0] = vec3(1, 0, 0, R[0].w());
+		R[1] = vec3(0, 1, 0, R[1].w());
+		R[2] = vec3(0, 0, 1, R[2].w());
+		set_P(P);
+	}
+	matrix(vec3 P, vec3 _A) : A(_A) {
+		Euler();
 		set_P(P);
 	}
 	inline vec3 P() const {
@@ -25,12 +31,12 @@ struct matrix {
 	inline void set_A(vec3 _A)
 	{
 		A = _A;
-		rot();
+		Euler();
 	}
 	inline void add_A(vec3 _A)
 	{
 		A += _A;
-		rot();
+		Euler();
 	}
 	inline void set(vec3 P, vec3 _A)
 	{
@@ -42,9 +48,14 @@ struct matrix {
 		add_P(P);
 		add_A(_A);
 	}
-	inline void rot()
+	inline void Euler()
 	{
 		A -= pi2 * floor(A * ipi2);
+		if (near0(A)) {
+			R[0] = vec3(1, 0, 0, R[0].w());
+			R[1] = vec3(0, 1, 0, R[1].w());
+			R[2] = vec3(0, 0, 1, R[2].w());
+		}
 		vec3 sin_A = sin(A);
 		vec3 cos_A = cos(A);
 		R[0].xyz[0] = cos_A.x() * cos_A.y();
@@ -75,12 +86,12 @@ struct matrix {
 inline matrix operator+(matrix T1,const matrix& T2) {
 	T1.add_A(T2.A);
 	T1.add_P(T2.P());
-	T1.rot();
+	T1.Euler();
 	return T1;
 }
 inline matrix operator-(matrix T1, const matrix& T2) {
 	T1.add_A(-T2.A);
 	T1.add_P(-T2.P());
-	T1.rot();
+	T1.Euler();
 	return T1;
 }

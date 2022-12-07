@@ -4,19 +4,13 @@
 class voxel {
 public:
 	voxel() {}
-	//a = half side lenght
+	//a = half side length
 	voxel(vec3 Q, float a) :Qa(Q, a) {}
 	voxel(vec4 _Qa) :Qa(_Qa) {}
 
-	inline aabb get_box()const {
-		return aabb(A(), B());
-	}
-
-	inline voxel trans(const matrix& T) const {
-		return voxel(Qa + T.P());
-	}
 	inline bool hit(const ray& r, hitrec& rec) const
 	{
+		//Based on AABB intersection method:
 		vec3 t1 = (A() - r.O) * r.iD;
 		vec3 t2 = (B() - r.O) * r.iD;
 		vec3 tmin = min(t1, t2);
@@ -41,6 +35,13 @@ public:
 			return true;
 		}
 		return false;
+	}
+	inline aabb get_box()const {
+		return aabb(A(), B());
+	}
+
+	inline voxel trans(const matrix& T) const {
+		return voxel(Qa + T.P());
 	}
 	inline float pdf(const ray& r)const {
 		hitrec rec;

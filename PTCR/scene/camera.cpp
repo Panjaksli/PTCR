@@ -11,7 +11,6 @@ void camera::set_P(vec3 P)
 	T.set_P(P);
 	moving = 1;
 }
-
 void camera::move_free(float frw, float up, float sid)
 {
 	vec3 u = T * vec3(1, 0, 0);
@@ -40,20 +39,6 @@ void camera::rotate(float alfa, float beta, float gamma)
 	T.add_A(fov * (1.f / 90.f) * vec3(alfa, beta, gamma));
 	moving = 1;
 }
-
-ray camera::focus_ray(float py, float px) const
-{
-	py *= h; px *= w;
-	float SSX = 2.f * (px + 0.5f) * iw - 1.f;
-	float SSY = 1.f - 2.f * (py + 0.5f) * ih;
-	px = SSX * tfov * asp;
-	py = SSY * tfov;
-	vec3 D(px, py, -1);
-	D = (T * D);
-	vec3 O(T.P());
-	return ray(O, D, 1);
-}
-
 void camera::resize(uint _w, uint _h, float scale)
 {
 	w = _w * scale;
@@ -64,7 +49,17 @@ void camera::resize(uint _w, uint _h, float scale)
 	CCD.resize(w, h);
 	moving = 1;
 }
-
+void camera::reset_opt() {
+	fov = 90, tfov = tan(0.5f * torad(fov));
+	iw = 1.f / w, ih = 1.f / h, asp = float(w) / h;
+	speed = 0.02f;
+	exposure = 1.f;
+	fstop = 16.f;
+	foc_l = 0.0216f;
+	foc_t = 1.f;
+	autofocus = 1;
+	moving = 1;
+}
 void camera::setup(matrix _T, float _fov, float _fstop) {
 	T = _T;
 	fov = _fov;
@@ -74,4 +69,13 @@ void camera::setup(matrix _T, float _fov, float _fstop) {
 void camera::set_fov(float _fov) {
 	fov = _fov;
 	update();
+}
+ray camera::focus_ray(float py, float px) const
+{
+	py *= h; px *= w;
+	SS(py, px);
+	vec3 D(px, py, -1);
+	D = (T * D);
+	vec3 O(T.P());
+	return ray(O, D, 1);
 }
