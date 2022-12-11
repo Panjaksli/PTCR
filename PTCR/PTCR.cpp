@@ -35,7 +35,6 @@ int main()
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.WantCaptureMouse = 1;
 	bool overlay = true;
-	
 	double frametime = 0;
 	double target_fps = 90;
 	double mov = 1;
@@ -49,6 +48,7 @@ int main()
 	bool tap_to_focus = 0;
 	int scn_n = 1;
 	int node_size = 8;
+	bool den_screen = 1;
 	scn_load(Scene, scn_n, node_size);
 	vec3 TP = Scene.sun_pos.P();
 	vec3 TA = Scene.sun_pos.A;
@@ -99,9 +99,9 @@ int main()
 			ImGui::SetNextWindowPos(ImVec2(WIDTH, 0));
 			ImGui::SetNextWindowSize(ImVec2(WIDTH * 16 / 12 - WIDTH, HEIGHT / 2));
 			ImGui::Begin("Camera settings");
-			ImGui::SameLine();
+			ImGui::Checkbox("Denoise", &den_screen); ImGui::SameLine();
 			if (ImGui::Button("Screenshot")) {
-				Scene.Screenshot();
+				Scene.Screenshot(den_screen);
 			}
 			if (ImGui::SliderInt("Scene", &scn_n, 1, no_scn)) {
 				id = obj_id();
@@ -157,9 +157,9 @@ int main()
 			moving |= ImGui::Checkbox("Debug UV", &Scene.opt.dbg_uv);	ImGui::SameLine();
 			moving |= ImGui::Checkbox("Debug t", &Scene.opt.dbg_t);
 			moving |= ImGui::Checkbox("Normal maps", &use_normal_maps); ImGui::SameLine();
-			static bool denoise = 1;
-			ImGui::Checkbox("Denoise", &denoise);// ImGui::SameLine();
-			moving |= !denoise;
+			static bool den_view = 1;
+			ImGui::Checkbox("Denoise", &den_view);// ImGui::SameLine();
+			moving |= !den_view;
 #endif
 			ImGui::Text("%.2f ms %.1f FPS,SPP %.1fk", 1000.0f / smooth_fps, smooth_fps, Scene.cam.CCD.spp * 0.001f);
 			ImGui::End();

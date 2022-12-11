@@ -43,8 +43,8 @@ public:
 	void cam_manufocus(float py = 0, float px = 0);
 	void set_trans(obj_id id, const matrix& T, uint node_size = 8);
 	void Render(uint* disp, uint pitch);
-	void Optix(vector<vec3>& I, vector<vec3>& A, vector<vec3>& N)const;
-	void Screenshot()const;
+	void Optix(vector<vec3>& A, vector<vec3>& N)const;
+	void Screenshot(bool denoise)const;
 private:
 	inline vec3 raycol_face(const ray& r)const {
 		hitrec rec;

@@ -84,7 +84,7 @@ void scene::Render(uint* disp, uint pitch) {
 	cam.moving = 0;
 }
 
-void scene::Optix(vector<vec3>& I, vector<vec3>& A, vector<vec3>& N)const {
+void scene::Optix(vector<vec3>& A, vector<vec3>& N)const {
 	printf("Generating buffers, please wait !!!\n");
 	hitrec rec; matrec mat;
 	int sa = opt.en_fog ? 1000 : 10000;
@@ -136,10 +136,9 @@ void scene::Optix(vector<vec3>& I, vector<vec3>& A, vector<vec3>& N)const {
 		A[k] = vec3(a, 1);
 		N[k] = vec3(n*n, 1);
 	}
-	I = cam.CCD.data;
 }
 
-void scene::Screenshot() const{
+void scene::Screenshot(bool denoise) const{
 	int spp = cam.CCD.spp;
 	uint wh = cam.CCD.n;
 	uint w = cam.CCD.w;
@@ -151,24 +150,19 @@ void scene::Screenshot() const{
 	string file;
 	string name_spp = string(name) + "_" + std::to_string(spp) + "SPP_";
 	vector<uint> buff(wh);
-	vector<vec3> I(wh), A(wh), N(wh);
-	Optix(I, A, N);
-
 	file = "screenshots\\" + name_spp + "i.png";
-	for (uint i = 0; i < wh; i++) rgb(I[i], buff[i]);
+	for (uint i = 0; i < wh; i++) rgb(cam.CCD.data[i], buff[i]);
 	stbi_write_png(file.c_str(), w, h, 4, &buff[0], 4 * w);
 	cout << "Saved file in: " << file << "\n";
-
+	if(denoise){
+	vector<vec3> A(wh), N(wh);
+	Optix(A, N);
 	file = "screenshots\\" + name_spp + "a.png";
 	for (uint i = 0; i < wh; i++) rgb(A[i], buff[i]);
 	stbi_write_png(file.c_str(), w, h, 4, &buff[0], 4 * w);
-	cout << "Saved file in: " << file << "\n";
-
 	file = "screenshots\\" + name_spp + "n.png";
 	for (uint i = 0; i < wh; i++) rgb(N[i], buff[i]);
 	stbi_write_png(file.c_str(), w, h, 4, &buff[0], 4 * w);
-	cout << "Saved file in: " << file << "\n";
-
 	string i = " -i screenshots\\" + name_spp + "i.png";
 	string a = " -a screenshots\\" + name_spp + "a.png";
 	string n = " -n screenshots\\" + name_spp + "n.png";
@@ -177,4 +171,5 @@ void scene::Screenshot() const{
 	system(invoke.c_str());
 	remove(("screenshots\\" + name_spp + "a.png").c_str());
 	remove(("screenshots\\" + name_spp + "n.png").c_str());
+	}
 }
